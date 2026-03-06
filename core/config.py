@@ -1,0 +1,13 @@
+# core/config.py
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    DATABASE_URL: str = "sqlite+aiosqlite:///./app.db"
+
+    # ALEMBIC_DATABASE_URL="sqlite:///./app.db"
+
+
+    class Config:
+        env_file = ".env"
+
+settings = Settings()

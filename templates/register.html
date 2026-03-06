@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+
+    <style>
+        /* Color Palette */
+        :root {
+            --dark-blue: #003056;
+            --pale-green: #8DB750;
+            --light-blue: #5980BE;
+            --tan: #F8F1CE;
+            --white: #fff;
+            --text: #000;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            color: var(--text);
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url("/static/images/beans.jpg") center / cover no-repeat;
+
+        }
+
+
+        /* LAYOUT */
+        .auth-wrap {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background-color: var(--white);
+            padding: 28px;
+            width: 420px;
+            border-radius: 10px;
+            border: 2px solid var(--pale-green);
+            box-shadow: 0 3px 9px rgba(0,0,0,0.1);
+        }
+
+        /* FORM */
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            border-radius: 6px;
+            border: 2px solid var(--dark-blue);
+            margin-bottom: 14px;
+        }
+        .login {
+            color: white;
+            padding: 10px;
+            background: var(--light-blue);
+            width: 100%;
+        }
+        
+    </style>
+</head>
+<body>
+
+<div class="auth-wrap">
+    <div class="auth-card">
+
+        <h2>Register</h2>
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" action="/register">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" required>
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" required>
+            <select id="role" name="role" required>
+                <option value="" disabled selected>Select your role</option>
+                <option value="User">User</option>
+                <option value="Venue">Venue</option>
+                <option value="Admin">Admin</option>
+            </select>
+            <button type="submit" class="login"><strong>Register</strong></button>
+        </form>
+
+        <p>
+            Already have an account? <a href="/login">Login</a>
+        </p>
+    </div>
+</div>
+
+</body>
+</html>
