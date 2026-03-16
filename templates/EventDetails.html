@@ -1,11 +1,182 @@
 <!DOCTYPE html>
-<html lang="en">
+
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Details</title>
+<title>Browse Events</title>
+
+<style>
+
+body{
+    font-family: Arial, Helvetica, sans-serif;
+    background-color:#121212;
+    color:#e4e4e4;
+    margin:0;
+    padding:0;
+}
+
+/* Header */
+
+.header{
+    text-align:center;
+    padding:30px 20px;
+}
+
+.header h1{
+    margin:0;
+    font-size:36px;
+}
+
+/* Filter section */
+
+.filter-bar{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin-bottom:30px;
+}
+
+select{
+    padding:8px;
+    border-radius:6px;
+    border:none;
+}
+
+.filter-btn{
+    padding:8px 14px;
+    background:#1f6feb;
+    border:none;
+    color:white;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+.filter-btn:hover{
+    background:#2f81f7;
+}
+
+/* Events grid */
+
+.events{
+    width:90%;
+    margin:auto;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:25px;
+}
+
+/* Event card */
+
+.event-card{
+    background:#1c1c1c;
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 4px 10px rgba(0,0,0,0.6);
+    transition:transform .15s ease;
+}
+
+.event-card:hover{
+    transform:translateY(-4px);
+}
+
+/* Event image */
+
+.event-image{
+    width:100%;
+    height:160px;
+    object-fit:cover;
+}
+
+/* Card content */
+
+.event-content{
+    padding:15px;
+}
+
+.event-content h3{
+    margin-top:0;
+}
+
+.event-info{
+    font-size:14px;
+    margin-bottom:5px;
+}
+
+/* Details button */
+
+.details-btn{
+    display:inline-block;
+    margin-top:10px;
+    padding:8px 12px;
+    background:#1f6feb;
+    color:white;
+    text-decoration:none;
+    border-radius:6px;
+    font-size:14px;
+}
+
+.details-btn:hover{
+    background:#2f81f7;
+}
+
+</style>
+
 </head>
+
 <body>
-    
+
+<div class="header">
+<h1>Browse Events</h1>
+</div>
+
+<form method="get" action="/events" class="filter-bar">
+
+<select name="category">
+<option value="">All Categories</option>
+
+{% for c in categories %}
+
+<option value="{{c.CategoryID}}">
+{{c.Name}}
+</option>
+{% endfor %}
+
+</select>
+
+<button type="submit" class="filter-btn">Filter</button>
+
+</form>
+
+<div class="events">
+
+{% for event in events %}
+
+<div class="event-card">
+
+<img src="{{event.ImageURL}}" class="event-image">
+
+<div class="event-content">
+
+<h3>{{event.Name}}</h3>
+
+<div class="event-info"><b>Venue:</b> {{event.VenueName}}</div>
+
+<div class="event-info"><b>Location:</b> {{event.Location}}</div>
+
+<div class="event-info"><b>Category:</b> {{event.Category}}</div>
+
+<div class="event-info"><b>Date:</b> {{event.StartDate}}</div>
+
+<div class="event-info"><b>Price:</b> ${{event.TicketPrice}}</div>
+
+<a class="details-btn">Details</a>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
 </body>
 </html>
