@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
 </head>
-<body>
+<body data-has-venue="{{ has_venue }}">
     <style>
     * {
         margin: 0;
@@ -39,102 +39,6 @@
         text-decoration: none;
     }
 
-    .register-btn {
-        background: #3b82f6;
-        padding: 8px 14px;
-        border-radius: 5px;
-    }
-
-    .hero {
-        height: 70vh;
-        background: linear-gradient(rgba(0,0,0,.6), rgba(0,0,0,.6)),
-            url("https://images.unsplash.com/photo-1505373877841-8d25f7d46678") center/cover;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        color: white;
-    }
-
-    .hero-content h1 {
-        font-size: 3rem;
-        margin-bottom: 15px;
-    }
-
-    .hero-content p {
-        font-size: 1.2rem;
-        margin-bottom: 25px;
-    }
-
-    .cta-btn {
-        background: #3b82f6;
-        padding: 12px 24px;
-        border-radius: 6px;
-        text-decoration: none;
-        color: white;
-        font-weight: bold;
-    }
-
-    /* FEATURED EVENTS */
-    .featured {
-        padding: 60px 40px;
-        text-align: center;
-        background: #f1f5f9;
-    }
-
-    .featured h2 {
-        margin-bottom: 30px;
-    }
-
-    .event-grid {
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-        flex-wrap: wrap;
-    }
-
-    .event-card {
-        background: white;
-        padding: 20px;
-        width: 250px;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .event-card h3 {
-        margin-bottom: 10px;
-    }
-
-    .event-card button {
-        margin-top: 15px;
-        padding: 8px 12px;
-        background: #3b82f6;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-
-    /* ROLES */
-    .roles {
-        padding: 60px 40px;
-        text-align: center;
-    }
-
-    .role-grid {
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-        flex-wrap: wrap;
-    }
-
-    .role-card {
-        background: #e2e8f0;
-        padding: 25px;
-        width: 260px;
-        border-radius: 8px;
-    }
-
     /* FOOTER */
     footer {
         text-align: center;
@@ -144,13 +48,13 @@
     }
 
     /* MAP SECTION */
-    .map-section {
+    .event-section {
         padding: 60px 40px;
         text-align: center;
         background: #f8fafc;
     }
 
-    .map-section h2 {
+    .event-section h2 {
         margin-bottom: 25px;
     }
 
@@ -162,12 +66,122 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
+    .overlay{
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.4);
+        backdrop-filter: blur(6px);
+        display: none;
+
+        z-index: 10;
+    }
+
+    .popForm{
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 25px;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 700px;
+        max-height: 90vh; 
+        background: white;
+        display: none;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        overflow-y: auto;
+        z-index: 11;
+    }
+    .popForm {
+        opacity: 0;
+        scale: 0.95;
+        transition: 0.2s ease;
+    }
+
+    .popForm.show {
+        opacity: 1;
+        scale: 1;
+    }
+    .form-card {
+        max-width: 700px;
+        width: 95%;
+        margin: 20px auto;
+        padding: 25px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .full {
+        grid-column: span 2;
+    }
+
+    label {
+        display: block;
+        margin-top: 12px;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    input, select, textarea {
+        width: 100%;
+        padding: 8px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+    }
+
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+    }
+
+    button {
+        margin-top: 15px;
+        width: 100%;
+        padding: 10px;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .poster {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .poster input[type="file"] {
+        display: block;
+        margin: 10px auto;
+    }
+
+    #preview {
+        width: 100%;
+        max-width: 300px;
+        height: auto;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-top: 10px;
+        display: block;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
     /* RESPONSIVE */
     @media (max-width: 768px) {
-        .hero-content h1 {
-            font-size: 2rem;
-        }
-
         .navbar {
             flex-direction: column;
             gap: 10px;
@@ -176,7 +190,7 @@
     </style>
     <header>
         <nav class="navbar">
-            <div class="logo">EventHub</div>
+            <div class="logo"><a href="/">EventHub</a></div>
             <ul class="nav-links">
                 <li><a href="#">Browse Events</a></li>
                 <li><a href="/login">Login</a></li>
@@ -189,19 +203,162 @@
         <h1>Venue Dashboard</h1>
     </section>
 
-    <section class="map-section">
-        <h2>Event Location</h2>
+    <section class="event-section">
+        <h2>Create Event</h2>
+        <button onclick="openForm()">Create</button>
+        <div id="overlay" class="overlay" onclick="closeForm()"></div>
+        <div id="popForm" class="popForm">
+            <h3>Form</h3>
+            <form method="POST" action="/create_event" class="form-card">
+                <div class="form-grid">
+                    <div id="venueFields">
+                        <div>
+                            <label>Venue Name</label>
+                            <input name="venue_name">
+                        </div>
 
-        <div class="map-container">
-            <div id="map" style="width:100%; height:400px;"></div>
+                        <div>
+                            <label>Street</label>
+                            <input name="street">
+                        </div>
+
+                        <div>
+                            <label>City</label>
+                            <input name="city">
+                        </div>
+
+                        <div>
+                            <label>State</label>
+                            <input name="state">
+                        </div>
+
+                        <div>
+                            <label>Zip</label>
+                            <input name="zip">
+                        </div>
+                    </div>
+
+                    <div id="VenueMessage" style="display:none;">
+                        <p>✅ Using your saved venue</p>
+                    </div>
+
+                    <div>
+                        <label>Event Name</label>
+                        <input name="name" required>
+                    </div>
+
+                    <div>
+                        <label>Category</label>
+                        <select name="category_id">
+                            <option value="" disabled selected>Choose a Category</option>
+                            <option value="1">Music</option>
+                            <option value="2">Visual Arts</option>
+                            <option value="3">Performing Arts</option>
+                            <option value="4">Film</option>
+                            <option value="5">Lectures & Books</option>
+                            <option value="6">Fashion</option>
+                            <option value="7">Food & Drink</option>
+                            <option value="8">Festivals & Fairs</option>
+                            <option value="9">Charities</option>
+                            <option value="10">Sports & Active Life</option>
+                            <option value="11">Nightlife</option>
+                            <option value="12">Kids & Family</option>
+                            <option value="13">Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label>Start</label>
+                        <input type="datetime-local" name="start" required>
+                    </div>
+
+                    <div>
+                        <label>End</label>
+                        <input type="datetime-local" name="end" required>
+                    </div>
+
+                    <div class="full">
+                        <label>Description</label>
+                        <textarea name="description"></textarea>
+                    </div>
+
+                    <div>
+                        <label>Ticket Price</label>
+                        <input type="number" step="0.01" name="price">
+                    </div>
+
+                    <div class="poster full">
+                        <label>Poster/Sign</label>
+                        <input type="file" accept="image/*" id="file" required>
+                        <img src="#" alt="Image preview" id="preview">
+                    </div>
+
+                    <div class="full">
+                        <button type="submit">Create Event</button>
+                    </div>
+                </div>
+            </form>
+            <button onclick="closeForm()">Close</button>
         </div>
     </section>
 
 
+    <div class="map-container">
+        <div id="map" style="width:100%; height:400px;"></div>
+    </div>
 
     <footer>
         <p>© 2026 EventHub. All rights reserved.</p>
     </footer>
+
+<script>
+    const hasVenue = document.body.dataset.hasVenue === "True";
+    const venueFields = document.getElementById("venueFields");
+    const venueMsg = document.getElementById("VenueMessage");
+
+    if (hasVenue) {
+        venueFields.style.display = "none";
+        venueMsg.style.display = "block";
+    } else {
+        venueFields.style.display = "block";
+        venueMsg.style.display = "none";
+    }
+
+</script>
+
+<script>
+    const file = document.getElementById("file");
+    const preview = document.getElementById("preview");
+    file.addEventListener("change", function () {
+        const files = file.files;
+        if (files && files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+                preview.style.display = "block";
+            };
+            reader.readAsDataURL(files[0]);
+        }
+    });
+</script>
+<script>
+    function openForm() {
+        document.getElementById("overlay").style.display = "block";
+        const form = document.getElementById("popForm");
+        form.style.display = "block";
+        setTimeout(() => form.classList.add("show"), 10);
+    }
+
+    function closeForm() {
+        const form = document.getElementById("popForm");
+        form.classList.remove("show");
+
+        setTimeout(() => {
+            form.style.display = "none";
+            document.getElementById("overlay").style.display = "none";
+        }, 200);
+    }
+</script>
 
 <script>
     async function loadEvents() {

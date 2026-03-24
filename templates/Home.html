@@ -4,267 +4,296 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
-</head>
-<body>
     <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: Arial, sans-serif;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Bentho', sans-serif;
+        }
 
-    .navbar {
+        @font-face {
+        font-family: 'Bentho';
+        src: url('fonts/bentho/Bentho.woff2') format('woff2'),
+            url('fonts/bentho/Bentho.woff') format('woff');
+        font-weight: normal;
+        font-style: normal;
+        }
+
+
+        .navbar {
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding: 15px 40px;
         background: black;
         color: white;
-    }
-
-    .logo {
-        font-size: 1.5rem;
-        font-weight: bold;
-    }
-
-    .nav-links {
-        list-style: none;
-        display: flex;
-        gap: 20px;
-    }
-
-    .nav-links a {
-        color: white;
-        text-decoration: none;
-    }
-
-    .register-btn {
-        background: #3b82f6;
-        padding: 8px 14px;
-        border-radius: 5px;
-    }
-    
-    .hero {
-    position: relative;
-    height: 70vh;
-    overflow: hidden;
-    }
-
-    /* CAROUSEL */
-    .carousel {
-        width: 100%;
-        height: 100%;
-        position: relative;
-    }
-
-    .slides {
-        width: 100%;
-        height: 100%;
-    }
-
-    .slide {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        background-size: cover;
-        background-position: center;
-        opacity: 0;
-        transition: opacity 0.8s ease-in-out;
-    }
-
-    /* Dark overlay */
-    .slide::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.6);
-    }
-
-    .slide.active {
-        opacity: 1;
-    }
-
-    /* HERO TEXT */
-    .hero-content {
-        position: absolute;
-        inset: 0;
-        z-index: 2;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        text-align: center;
-    }
-
-    .hero-content h1 {
-        font-size: 3rem;
-        margin-bottom: 15px;
-    }
-
-    .hero-content p {
-        font-size: 1.2rem;
-        margin-bottom: 25px;
-    }
-
-    /* BUTTONS */
-    .prev,
-    .next {
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        background: rgba(0,0,0,0.5);
-        border: none;
-        color: white;
-        font-size: 28px;
-        padding: 10px 16px;
-        cursor: pointer;
-        z-index: 3;
-        border-radius: 5px;
-    }
-
-    .prev { left: 20px; }
-    .next { right: 20px; }
-
-    .prev:hover,
-    .next:hover {
-        background: rgba(0,0,0,0.8);
-    }
-
-    .cta-btn {
-        background: #3b82f6;
-        padding: 12px 24px;
-        border-radius: 6px;
-        text-decoration: none;
-        color: white;
-        font-weight: bold;
-    }
-
-    /* FEATURED EVENTS */
-    .featured {
-        padding: 60px 40px;
-        text-align: center;
-        background: rgb(43, 42, 45);
-    }
-
-    .featured h2 {
-        margin-bottom: 30px;
-    }
-
-    .event-grid {
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-        flex-wrap: wrap;
-    }
-
-    .event-card {
-        background: white;
-        padding: 20px;
-        width: 250px;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .event-card h3 {
-        margin-bottom: 10px;
-    }
-
-    .event-card button {
-        margin-top: 15px;
-        padding: 8px 12px;
-        background: #3b82f6;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-
-    /* ROLES */
-    .roles {
-        padding: 60px 40px;
-        text-align: center;
-        background: rgb(51, 50, 52);
-    }
-
-    .roles h2 {
-        padding-bottom: 30px;
-    }
-
-    .role-grid {
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-        flex-wrap: wrap;
-    }
-
-    .role-card {
-        background: #e2e8f0;
-        padding: 25px;
-        width: 260px;
-        border-radius: 8px;
-    }
-
-    /* FOOTER */
-    footer {
-        text-align: center;
-        padding: 20px;
-        background: black;
-        color: white;
-    }
-
-    /* MAP SECTION */
-    .map-container {
-        position: relative;
-    }
-
-    .map-search-wrapper {
-        position: absolute;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 5;
-        width: 90%;
-        max-width: 500px;
-    }
-
-    .map-search {
-        display: flex;
-        align-items: center;
-        background: white;
-        border-radius: 30px;
-        padding: 10px 16px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-        transition: 0.3s ease;
-    }
-
-    .search-icon {
-        margin-right: 10px;
-        font-size: 18px;
-        color: #6b7280;
-    }
-
-    #searchBox {
-        border: none;
-        outline: none;
-        width: 100%;
-        font-size: 15px;
-        background: transparent;
-    }
-
-    /* RESPONSIVE */
-    @media (max-width: 768px) {
-        .hero-content h1 {
-            font-size: 2rem;
+        position: sticky;
+        top: 0;
+        z-index: 1000; 
         }
 
-        .navbar {
+        .logo {
+            font-family: 'Bentho' sans-serif;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .register-btn {
+            background: #3b82f6;
+            padding: 8px 14px;
+            border-radius: 5px;
+        }
+
+        .hero {
+            position: relative;
+            height: 70vh;
+            overflow: hidden;
+        }
+
+        .carousel {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .slides {
+            width: 100%;
+            height: 100%;
+        }
+
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+        }
+
+        .slide::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .slide.active {
+            opacity: 1;
+        }
+
+        .hero-content {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            display: flex;
             flex-direction: column;
-            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
         }
-    }
+
+        .hero-content h1 {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+        }
+
+        .prev,
+        .next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            color: white;
+            font-size: 28px;
+            padding: 10px 16px;
+            cursor: pointer;
+            z-index: 3;
+            border-radius: 5px;
+        }
+
+        .prev {
+            left: 20px;
+        }
+
+        .next {
+            right: 20px;
+        }
+
+        .prev:hover,
+        .next:hover {
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .cta-btn {
+            background: #3b82f6;
+            padding: 12px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+        }
+
+        .featured {
+            padding: 60px 40px;
+            text-align: center;
+            background: black;
+            color: white;
+        }
+
+        .featured h2 {
+            margin-bottom: 30px;
+        }
+
+        .event-grid {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .event-card {
+            background: white;
+            color: black;
+            padding: 20px;
+            width: 250px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .event-card h3 {
+            margin-bottom: 10px;
+        }
+
+        .event-image {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+
+        .event-btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 8px 12px;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .roles {
+            padding: 60px 40px;
+            text-align: center;
+            background: rgb(51, 50, 52);
+            color: white;
+        }
+
+        .roles h2 {
+            padding-bottom: 30px;
+        }
+
+        .role-grid {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .role-card {
+            background: #e2e8f0;
+            color: black;
+            padding: 25px;
+            width: 260px;
+            border-radius: 8px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: black;
+            color: white;
+        }
+
+        .map-container {
+            position: relative;
+        }
+
+        .map-search-wrapper {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .map-search {
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 30px;
+            padding: 10px 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+            transition: 0.3s ease;
+        }
+
+        .search-icon {
+            margin-right: 10px;
+            font-size: 18px;
+            color: #6b7280;
+        }
+
+        #searchBox {
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 15px;
+            background: transparent;
+        }
+
+        @media (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+
+            .navbar {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .prev,
+            .next {
+                font-size: 22px;
+                padding: 8px 12px;
+            }
+        }
     </style>
+</head>
+<body>
     <header>
         <nav class="navbar">
             <div class="logo">E.V.E</div>
@@ -275,39 +304,27 @@
             </ul>
         </nav>
     </header>
-    
+
     <section class="hero">
-
         <div class="carousel">
-
             <div class="slides">
-                <div class="slide active"
-                    style="background-image:url('https://www.ppgpaintsarena.com/assets/img/Website-Stage_2360x1020_v2-fe86f7a355.jpg');"></div>
-                <div class="slide"
-                    style="background-image:url('https://www.discoverlancaster.com/imager/assets_simpleviewinc_com/simpleview/image/upload/crm/discoverlancaster/laserdome_19982819630_o0-23211d8a5056a36_23211e98-5056-a36a-09fe899f098a5a1d_e45adf5f6bc0c5c2a30a39868f44eab6.jpg');"></div>
-                <div class="slide"
-                    style="background-image:url('https://sweetwaterportraits.com/wp-content/uploads/2024/11/suwalski_490.jpg');"></div>
-                <div class="slide"
-                    style="background-image:url('https://music-row-website-assets.s3.amazonaws.com/wp-content/uploads/2024/04/Luke-Combs-attendance-1030x687.jpeg');"></div>
-                <div class="slide active"
-                    style="background-image:url('https://www.outsideonline.com/wp-content/uploads/2022/08/bass-pro-pyramid-memphis-night_h.jpg');"></div>
-                <div class="slide"
-                    style="background-image:url('https://www.gunsholstersandgear.com/wp-content/uploads/2024/01/2024-SHOT-Show.jpg');"></div>
+                <div class="slide active" style="background-image:url('https://www.ppgpaintsarena.com/assets/img/Website-Stage_2360x1020_v2-fe86f7a355.jpg');"></div>
+                <div class="slide" style="background-image:url('https://www.discoverlancaster.com/imager/assets_simpleviewinc_com/simpleview/image/upload/crm/discoverlancaster/laserdome_19982819630_o0-23211d8a5056a36_23211e98-5056-a36a-09fe899f098a5a1d_e45adf5f6bc0c5c2a30a39868f44eab6.jpg');"></div>
+                <div class="slide" style="background-image:url('https://sweetwaterportraits.com/wp-content/uploads/2024/11/suwalski_490.jpg');"></div>
+                <div class="slide" style="background-image:url('https://music-row-website-assets.s3.amazonaws.com/wp-content/uploads/2024/04/Luke-Combs-attendance-1030x687.jpeg');"></div>
+                <div class="slide" style="background-image:url('https://about.basspro.com/wp-content/uploads/2020/10/f526b7db-15c1c2b9a76.jpg');"></div>
+                <div class="slide" style="background-image:url('https://www.gunsholstersandgear.com/wp-content/uploads/2024/01/2024-SHOT-Show.jpg');"></div>
             </div>
 
-            <!-- Overlay Content -->
             <div class="hero-content">
                 <h1>Discover & Manage Amazing Events</h1>
                 <p>Create events, book tickets, and connect with your community.</p>
-                <a href="#" class="cta-btn">Explore Events</a>
+                <a href="/events" class="cta-btn">Explore Events</a>
             </div>
 
-            <!-- Controls -->
             <button class="prev">&#10094;</button>
             <button class="next">&#10095;</button>
-
         </div>
-
     </section>
 
     <div class="map-container">
@@ -324,32 +341,29 @@
     <section class="featured">
         <h2>Featured Events</h2>
         <div class="event-grid">
+            {% if featured_events %}
+                {% for event in featured_events %}
+                    <div class="event-card">
+                        {% if event["ImageURL"] %}
+                            <img src="{{ event['ImageURL'] }}" alt="{{ event['Name'] }}" class="event-image">
+                        {% endif %}
 
-            <div class="event-card">
-                <h3>Tech Conference 2026</h3>
-                <p>March 15 • New York</p>
-                <button>View Details</button>
-            </div>
+                        <h3>{{ event["Name"] }}</h3>
+                        <p>{{ event["StartDate"] }}</p>
+                        <p>{{ event["VenueName"] }}</p>
 
-            <div class="event-card">
-                <h3>Live Music Festival</h3>
-                <p>April 2 • Los Angeles</p>
-                <button>View Details</button>
-            </div>
-
-            <div class="event-card">
-                <h3>Startup Networking Night</h3>
-                <p>May 10 • Chicago</p>
-                <button>View Details</button>
-            </div>
-
+                        <a href="/events/{{ event['EventID'] }}" class="event-btn">View Details</a>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No featured events available right now.</p>
+            {% endif %}
         </div>
     </section>
 
     <section class="roles">
         <h2>Built for Everyone</h2>
         <div class="role-grid">
-
             <div class="role-card">
                 <h3>Event Seekers</h3>
                 <p>Discover events, book tickets, and manage your reservations.</p>
@@ -364,7 +378,6 @@
                 <h3>Administrators</h3>
                 <p>Moderate events, manage users, and monitor platform activity.</p>
             </div>
-
         </div>
     </section>
 
@@ -380,7 +393,7 @@
         let index = 0;
 
         function showSlide(i) {
-            slides.forEach(s => s.classList.remove('active'));
+            slides.forEach(slide => slide.classList.remove('active'));
             slides[i].classList.add('active');
         }
 
@@ -394,7 +407,6 @@
             showSlide(index);
         });
 
-        /* Auto slide every 5 seconds */
         setInterval(() => {
             index = (index + 1) % slides.length;
             showSlide(index);
@@ -402,141 +414,139 @@
     </script>
 
     <script>
-    async function loadEvents() {
-        const res = await fetch("/api/events");
-        if (!res.ok) throw new Error("Failed to load /api/events");
-        return await res.json();
-    }
-    async function initMap() {
-        const map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 39.5, lng: -98.35 },
-        zoom: 4,
-        streetViewControl: false,
-        mapTypeControl: false,
-        fullscreenControl: false,
-        zoomControl: true,
-        styles: [
-            { elementType: "geometry", stylers: [{ color: "#1f2937" }] },
-            { elementType: "labels.text.stroke", stylers: [{ color: "#111827" }] },
-            { elementType: "labels.text.fill", stylers: [{ color: "#9ca3af" }] },
-            {
-                featureType: "road",
-                elementType: "geometry",
-                stylers: [{ color: "#374151" }]
-            },
-            {
-                featureType: "water",
-                elementType: "geometry",
-                stylers: [{ color: "#0f172a" }]
-            }
-        ]
-    });
-    
-    const events = await loadEvents();
-    const bounds = new google.maps.LatLngBounds();
-    const markers = [];
+        async function loadEvents() {
+            const res = await fetch("/api/events");
+            if (!res.ok) throw new Error("Failed to load /api/events");
+            return await res.json();
+        }
 
-    events.forEach(e => {
-        const lat = Number(e.Latitude);
-        const lng = Number(e.Longitude);
-
-        if (!lat || !lng) return;
-
-        const pos = { lat, lng };
-
-        const marker = new google.maps.Marker({
-            position: pos,
-            map,
-            title: e.EventName,
-            animation: google.maps.Animation.DROP,
-            icon: {
-                path: google.maps.SymbolPath.CIRCLE,
-                scale: 8,
-                fillColor: "#3b82f6",
-                fillOpacity: 1,
-                strokeColor: "#ffffff",
-                strokeWeight: 2,
-            }
-        });
-
-        const infoWindow = new google.maps.InfoWindow({
-            content: `
-                <div style="padding:10px; max-width:220px;">
-                    <h3 style="margin:0; color:#3b82f6;">
-                        ${e.EventName}
-                    </h3>
-                    <p style="margin:6px 0;">
-                        ${e.VenueName}
-                    </p>
-                    <small>${e.Location}</small>
-                    <br>
-                    <a href="/events/${e.EventID}"
-                       style="display:inline-block;
-                              margin-top:8px;
-                              padding:6px 10px;
-                              background:#3b82f6;
-                              color:white;
-                              border-radius:4px;
-                              text-decoration:none;">
-                        View Event
-                    </a>
-                </div>
-            `
-        });
-
-        marker.addListener("click", () => {
-            infoWindow.open(map, marker);
-        });
-
-        markers.push(marker);
-        bounds.extend(pos);
-    });
-
-    if (markers.length) {
-        map.fitBounds(bounds);
-    }
-
-    const input = document.getElementById("searchBox");
-
-    if (input) {
-
-        const searchBox = new google.maps.places.SearchBox(input);
-
-        map.addListener("bounds_changed", () => {
-            searchBox.setBounds(map.getBounds());
-        });
-
-        let searchMarker;
-
-        searchBox.addListener("places_changed", () => {
-
-            const places = searchBox.getPlaces();
-            if (!places.length) return;
-
-            const place = places[0];
-
-            if (!place.geometry || !place.geometry.location) return;
-
-            if (searchMarker) searchMarker.setMap(null);
-
-            searchMarker = new google.maps.Marker({
-                map,
-                position: place.geometry.location,
-                animation: google.maps.Animation.DROP,
+        async function initMap() {
+            const map = new google.maps.Map(document.getElementById("map"), {
+                center: { lat: 39.5, lng: -98.35 },
+                zoom: 4,
+                streetViewControl: false,
+                mapTypeControl: false,
+                fullscreenControl: false,
+                zoomControl: true,
+                styles: [
+                    { elementType: "geometry", stylers: [{ color: "#1f2937" }] },
+                    { elementType: "labels.text.stroke", stylers: [{ color: "#111827" }] },
+                    { elementType: "labels.text.fill", stylers: [{ color: "#9ca3af" }] },
+                    {
+                        featureType: "road",
+                        elementType: "geometry",
+                        stylers: [{ color: "#374151" }]
+                    },
+                    {
+                        featureType: "water",
+                        elementType: "geometry",
+                        stylers: [{ color: "#0f172a" }]
+                    }
+                ]
             });
 
-            map.panTo(place.geometry.location);
-            map.setZoom(12);
-        });
-    }
-}
+            const events = await loadEvents();
+            const bounds = new google.maps.LatLngBounds();
+            const markers = [];
 
-    window.initMap = initMap;
-</script>
+            events.forEach(e => {
+                const lat = Number(e.Latitude);
+                const lng = Number(e.Longitude);
 
-<script
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDRnWC5LJrp2i6SVmhpWHaIKpi8PC2xk6k&libraries=places&callback=initMap"
-    async defer>
-</script>
+                if (!lat || !lng) return;
+
+                const pos = { lat, lng };
+
+                const marker = new google.maps.Marker({
+                    position: pos,
+                    map,
+                    title: e.EventName,
+                    animation: google.maps.Animation.DROP,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 8,
+                        fillColor: "#3b82f6",
+                        fillOpacity: 1,
+                        strokeColor: "#ffffff",
+                        strokeWeight: 2,
+                    }
+                });
+
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `
+                        <div style="padding:10px; max-width:220px;">
+                            <h3 style="margin:0; color:#3b82f6;">
+                                ${e.EventName}
+                            </h3>
+                            <p style="margin:6px 0;">
+                                ${e.VenueName}
+                            </p>
+                            <small>${e.Location}</small>
+                            <br>
+                            <a href="/events/${e.EventID}"
+                               style="display:inline-block;
+                                      margin-top:8px;
+                                      padding:6px 10px;
+                                      background:#3b82f6;
+                                      color:white;
+                                      border-radius:4px;
+                                      text-decoration:none;">
+                                View Event
+                            </a>
+                        </div>
+                    `
+                });
+
+                marker.addListener("click", () => {
+                    infoWindow.open(map, marker);
+                });
+
+                markers.push(marker);
+                bounds.extend(pos);
+            });
+
+            if (markers.length) {
+                map.fitBounds(bounds);
+            }
+
+            const input = document.getElementById("searchBox");
+
+            if (input) {
+                const searchBox = new google.maps.places.SearchBox(input);
+
+                map.addListener("bounds_changed", () => {
+                    searchBox.setBounds(map.getBounds());
+                });
+
+                let searchMarker;
+
+                searchBox.addListener("places_changed", () => {
+                    const places = searchBox.getPlaces();
+                    if (!places.length) return;
+
+                    const place = places[0];
+                    if (!place.geometry || !place.geometry.location) return;
+
+                    if (searchMarker) searchMarker.setMap(null);
+
+                    searchMarker = new google.maps.Marker({
+                        map,
+                        position: place.geometry.location,
+                        animation: google.maps.Animation.DROP,
+                    });
+
+                    map.panTo(place.geometry.location);
+                    map.setZoom(12);
+                });
+            }
+        }
+
+        window.initMap = initMap;
+    </script>
+
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDRnWC5LJrp2i6SVmhpWHaIKpi8PC2xk6k&libraries=places&callback=initMap"
+        async defer>
+    </script>
 </body>
 </html>
