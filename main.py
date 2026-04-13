@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, Request, Form, HTTPException, status
+from fastapi import FastAPI, Depends, Request, Form, HTTPException, status, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.dependency import get_db
 from fastapi.templating import Jinja2Templates
@@ -11,6 +11,7 @@ from geopy.geocoders import Nominatim
 import time
 import sqlite3
 from starlette.middleware.sessions import SessionMiddleware
+import os, shutil, uuid
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -83,12 +84,29 @@ def user_dashboard(request: Request):
     return templates.TemplateResponse("UserDashboard.html", {"request": request})
 
 @app.get("/venue_dashboard", response_class=HTMLResponse)
-def user_dashboard(request: Request):
-    has_venue = bool(request.session.get("VenueId"))
-    return templates.TemplateResponse("home.html", {
-        "request": request,
-        "has_venue": has_venue
-    })
+async def venue_dashboard(request: Request,  db: AsyncSession = Depends(get_db)):
+    venue_id = request.session.get("VenueId")
+    has_venue = bool(venue_id)
+
+    venue_name = None
+
+    if venue_id:
+        result = await db.execute(text("""
+            SELECT VenueName FROM Venues WHERE VenueID = :id
+        """), {"id": venue_id})
+
+        venue_name = result.scalar()
+        result = await db.execute(text("""
+            SELECT TimeID, StartTime, EndTime 
+            FROM TimeSlots
+        """))
+        time_slots = result.mappings().all()
+        return templates.TemplateResponse("VenueDashboard.html", {
+            "request": request,
+            "has_venue": has_venue,
+            "venue_name": venue_name,
+            "time_slots": time_slots
+        })
 
 @app.get("/register", response_class=HTMLResponse)
 def register_page(request: Request):
@@ -197,22 +215,37 @@ async def get_events(db: AsyncSession = Depends(get_db)):
             e.EventID,
             e.Name AS EventName,
             v.VenueName AS VenueName,
-            v.Location
+            v.Location,
+            e.ImageURL
         FROM Events e
         JOIN Venues v ON v.VenueID = e.VenueID
-        WHERE e.Approved = 1
+        
     """))
-    rows = result.mappings().all()
+    # WHERE e.Approved = 1
 
-    return [
-        {
+    rows = result.mappings().all()
+    events = []
+
+    for r in rows:
+        lat, lng = None, None
+
+        if r["Location"] and "," in r["Location"]:
+            try:
+                lat, lng = map(float, r["Location"].split(","))
+            except Exception as e:
+                print("BAD LOCATION:", r["Location"], e)
+
+        events.append({
             "EventID": r["EventID"],
             "EventName": r["EventName"],
             "VenueName": r["VenueName"],
-            "Location": r["Location"]
-        }
-        for r in rows
-    ]
+            "Location": r["Location"],
+            "ImageURL": r["ImageURL"],
+            "Latitude": lat,
+            "Longitude": lng
+        })
+
+    return events
 
 @app.get("/events", response_class=HTMLResponse)
 async def events_page(
@@ -263,8 +296,9 @@ async def events_page(
 async def create_event(
     request: Request,
     name: str = Form(...),
-    start: str = Form(...),
-    end: str = Form(...),
+    start: str = Form(None),
+    end: str = Form(None), 
+    time_id: int = Form(...),
     category_id: int = Form(...),
     desc: str = Form(...),
     venue_name: str = Form(None),
@@ -273,6 +307,7 @@ async def create_event(
     state: str = Form(None),
     zip: str = Form(None),
     price: float = Form(...),
+    poster: UploadFile = File(None),
     db: AsyncSession = Depends(get_db),
 ):
     try:
@@ -280,58 +315,58 @@ async def create_event(
         user = request.session.get("user")
         if not user:
             return RedirectResponse("/login", status_code=303)
+        
         venue_id = request.session.get("VenueId")
-        if not venue_id:
+
+        if venue_name and city and state:
+    
             full_address = f"{street}, {city}, {state} {zip}"
 
+            print("ADDRESS:", full_address)
+
             geo = geolocator.geocode(full_address)
+
+            print("GEO RESULT:", geo)
+
             if not geo:
                 return {"error": "Invalid address"}
             
             location = f"{geo.latitude},{geo.longitude}"
 
             result = await db.execute(text("""
-                SELECT VenueID FROM venues
-                WHERE VenueName = :name AND Location = :location
+                INSERT INTO venues (VenueName, Location)
+                VALUES (:name, :location)
+                RETURNING VenueID
             """), {
                 "name": venue_name,
                 "location": location
             })
 
-            venue = result.first()
-
-            if venue:
-                venue_id = venue[0]
-            else:
-                result = await db.execute(text("""
-                    INSERT INTO venues (VenueName, Location)
-                    VALUES (:name, :location)
-                    RETURNING VenueID
-                """), {
-                    "name": venue_name,
-                    "location": location
-                })
-
-                venue_id = result.scalar()
+            venue_id = result.scalar()
+            await db.commit()
 
             request.session["VenueId"] = venue_id
 
+        if not venue_id:
+            return {"error": "Please enter a venue"}
+
         await db.execute(text("""
             INSERT INTO events (
-                VenueID, CategoryID,
+                VenueID, CategoryID, TimeID,
                 Name, Description,
                 StartDate, EndDate,
                 TicketPrice, Approved
             )
             VALUES (
-                :venue_id, :category_id,
+                :venue_id, :category_id, :time_id,
                 :name, :desc,
                 :start, :end,
-                :price, 'Pending'
+                :price, 0
             )
         """), {
             "venue_id": venue_id,
             "category_id": category_id,
+            "time_id": time_id,
             "name": name,
             "desc": desc,
             "start": start,
@@ -339,9 +374,52 @@ async def create_event(
             "price": price
         })
 
+        await db.commit()
+
     except Exception as e:
-        print("ERROR:", str(e))
-        raise
-    await db.commit()
+        return {"error": str(e)}
+
+    return RedirectResponse("/venue_dashboard", status_code=303)
+
+@app.post("/save_venue")
+async def save_venue(
+    request: Request,
+    venue_name: str = Form(...),
+    street: str = Form(...),
+    city: str = Form(...),
+    state: str = Form(...),
+    zip: str = Form(...),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        user = request.session.get("user")
+        if not user:
+            return RedirectResponse("/login", status_code=303)
+
+        full_address = f"{street}, {city}, {state} {zip}"
+
+        geo = geolocator.geocode(full_address, timeout=10)
+
+        if not geo:
+            return {"error": "Invalid address"}
+
+        location = f"{geo.latitude},{geo.longitude}"
+
+        result = await db.execute(text("""
+            INSERT INTO Venues (VenueName, Location)
+            VALUES (:name, :location)
+            RETURNING VenueID
+        """), {
+            "name": venue_name,
+            "location": location
+        })
+
+        venue_id = result.scalar()
+        await db.commit()
+
+        request.session["VenueId"] = venue_id
+
+    except Exception as e:
+        return {"error": str(e)}
 
     return RedirectResponse("/venue_dashboard", status_code=303)

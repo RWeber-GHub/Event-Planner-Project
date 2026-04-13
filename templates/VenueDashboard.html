@@ -1,335 +1,448 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Venue Dashboard</title>
 </head>
-<body data-has-venue="{{ has_venue }}">
-    <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: Arial, sans-serif;
-    }
 
-    .navbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 15px 40px;
-        background: #1e293b;
-        color: white;
-    }
+<body data-has-venue="{{ has_venue | lower }}">
 
-    .logo {
-        font-size: 1.5rem;
-        font-weight: bold;
-    }
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
 
-    .nav-links {
-        list-style: none;
-        display: flex;
-        gap: 20px;
-    }
+/* NAVBAR */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 40px;
+    background: #1e293b;
+    color: white;
+}
 
-    .nav-links a {
-        color: white;
-        text-decoration: none;
-    }
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
 
-    /* FOOTER */
-    footer {
-        text-align: center;
-        padding: 20px;
-        background: #1e293b;
-        color: white;
-    }
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 20px;
+}
 
-    /* MAP SECTION */
-    .event-section {
-        padding: 60px 40px;
-        text-align: center;
-        background: #f8fafc;
-    }
+.nav-links a {
+    color: white;
+    text-decoration: none;
+}
 
-    .event-section h2 {
-        margin-bottom: 25px;
-    }
+/* SECTIONS */
+.event-section {
+    padding: 50px 30px;
+    text-align: center;
+    background: #f8fafc;
+}
 
-    .map-container {
-        max-width: 1000px;
-        margin: auto;
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
+.event-section h2 {
+    margin-bottom: 20px;
+    font-size: 26px;
+    color: #1e293b;
+}
 
-    .overlay{
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.4);
-        backdrop-filter: blur(6px);
-        display: none;
+/* VENUE DISPLAY */
+.event-section p {
+    font-size: 15px;
+    color: #475569;
+    margin-bottom: 10px;
+}
 
-        z-index: 10;
-    }
+/* MAP */
+.map-container {
+    max-width: 1000px;
+    margin: 40px auto;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
 
-    .popForm{
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        padding: 25px;
-        border-radius: 10px;
-        width: 90%;
-        max-width: 700px;
-        max-height: 90vh; 
-        background: white;
-        display: none;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        overflow-y: auto;
-        z-index: 11;
-    }
-    .popForm {
-        opacity: 0;
-        scale: 0.95;
-        transition: 0.2s ease;
-    }
+/* OVERLAY */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(6px);
+    display: none;
+    z-index: 10;
+}
 
-    .popForm.show {
-        opacity: 1;
-        scale: 1;
-    }
-    .form-card {
-        max-width: 700px;
-        width: 95%;
-        margin: 20px auto;
-        padding: 25px;
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
+/* POPUP */
+.popForm {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    padding: 30px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 720px;
+    max-height: 90vh;
+    background: white;
+    display: none;
+    overflow-y: auto;
+    z-index: 11;
+    opacity: 0;
+    transition: all 0.25s ease;
+}
 
-    .form-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-    }
+.popForm.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
 
-    .full {
-        grid-column: span 2;
-    }
+/* FORM */
+.form-card {
+    padding: 25px;
+    border-radius: 14px;
+    background: #ffffff;
+}
 
-    label {
-        display: block;
-        margin-top: 12px;
-        margin-bottom: 5px;
-        font-weight: bold;
-    }
+/* GRID */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
 
-    input, select, textarea {
-        width: 100%;
-        padding: 8px;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-        font-size: 14px;
-    }
+.full {
+    grid-column: span 2;
+}
 
-    input:focus, select:focus, textarea:focus {
-        outline: none;
-        border-color: #3b82f6;
-    }
+/* LABEL */
+label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+}
 
-    button {
-        margin-top: 15px;
-        width: 100%;
-        padding: 10px;
-        background: #3b82f6;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-weight: bold;
-        cursor: pointer;
-    }
+/* INPUTS */
+input, select, textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    font-size: 14px;
+    background: #f8fafc;
+    transition: all 0.2s ease;
+}
 
-    .poster {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
 
-    .poster input[type="file"] {
-        display: block;
-        margin: 10px auto;
-    }
+textarea {
+    min-height: 90px;
+    resize: vertical;
+}
 
-    #preview {
-        width: 100%;
-        max-width: 300px;
-        height: auto;
-        object-fit: cover;
-        border-radius: 8px;
-        margin-top: 10px;
-        display: block;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    }
+/* BUTTON */
+button {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(to right, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
 
-    /* RESPONSIVE */
-    @media (max-width: 768px) {
-        .navbar {
-            flex-direction: column;
-            gap: 10px;
-        }
-    }
-    </style>
-    <header>
-        <nav class="navbar">
-            <div class="logo"><a href="/">EventHub</a></div>
-            <ul class="nav-links">
-                <li><a href="#">Browse Events</a></li>
-                <li><a href="/login">Login</a></li>
-                <li><a href="/register" class="register-btn">Register</a></li>
-            </ul>
-        </nav>
-    </header>
+button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(59,130,246,0.3);
+}
 
-    <section>
-        <h1>Venue Dashboard</h1>
-    </section>
+/* VENUE MESSAGE */
+#VenueMessage {
+    background: #e0f2fe;
+    border: 1px solid #7dd3fc;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #0369a1;
+}
 
-    <section class="event-section">
-        <h2>Create Event</h2>
-        <button onclick="openForm()">Create</button>
-        <div id="overlay" class="overlay" onclick="closeForm()"></div>
-        <div id="popForm" class="popForm">
-            <h3>Form</h3>
-            <form method="POST" action="/create_event" class="form-card">
-                <div class="form-grid">
-                    <div id="venueFields">
-                        <div>
-                            <label>Venue Name</label>
-                            <input name="venue_name">
-                        </div>
+/* POSTER */
+.poster {
+    text-align: center;
+}
 
-                        <div>
-                            <label>Street</label>
-                            <input name="street">
-                        </div>
+#preview {
+    width: 100%;
+    max-width: 280px;
+    border-radius: 10px;
+    margin-top: 10px;
+}
 
-                        <div>
-                            <label>City</label>
-                            <input name="city">
-                        </div>
+.map-container {
+    max-width: 1000px;
+    margin: 50px auto;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    border: 1px solid #e2e8f0;
+    position: relative;
+}
 
-                        <div>
-                            <label>State</label>
-                            <input name="state">
-                        </div>
+.map-container::before {
+    content: "Event Locations";
+    position: absolute;
+    top: 10px;
+    left: 15px;
+    background: rgba(255,255,255,0.9);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #1e293b;
+    z-index: 5;
+}
 
-                        <div>
-                            <label>Zip</label>
-                            <input name="zip">
-                        </div>
-                    </div>
+/* FOOTER */
+footer {
+    text-align: center;
+    padding: 20px;
+    background: #1e293b;
+    color: white;
+}
+</style>
 
-                    <div id="VenueMessage" style="display:none;">
-                        <p>✅ Using your saved venue</p>
-                    </div>
+<header>
+<nav class="navbar">
+    <div class="logo">EventHub</div>
+    <ul class="nav-links">
+        <li><a href="#">Browse</a></li>
+        <li><a href="/login">Login</a></li>
+    </ul>
+</nav>
+</header>
 
-                    <div>
-                        <label>Event Name</label>
-                        <input name="name" required>
-                    </div>
+<h1 style="text-align:center;margin-top:20px;">Venue Dashboard</h1>
 
-                    <div>
-                        <label>Category</label>
-                        <select name="category_id">
-                            <option value="" disabled selected>Choose a Category</option>
-                            <option value="1">Music</option>
-                            <option value="2">Visual Arts</option>
-                            <option value="3">Performing Arts</option>
-                            <option value="4">Film</option>
-                            <option value="5">Lectures & Books</option>
-                            <option value="6">Fashion</option>
-                            <option value="7">Food & Drink</option>
-                            <option value="8">Festivals & Fairs</option>
-                            <option value="9">Charities</option>
-                            <option value="10">Sports & Active Life</option>
-                            <option value="11">Nightlife</option>
-                            <option value="12">Kids & Family</option>
-                            <option value="13">Other</option>
-                        </select>
-                    </div>
 
-                    <div>
-                        <label>Start</label>
-                        <input type="datetime-local" name="start" required>
-                    </div>
+<section class="event-section">
+    <h2>Your Venue</h2>
+    <p>
+    {% if venue_name %}
+        Current: <strong>{{ venue_name }}</strong>
+    {% else %}
+        No venue set
+    {% endif %}
+    </p>
+    <button onclick="openVenueForm()">Set / Edit Venue</button>
+</section>
 
-                    <div>
-                        <label>End</label>
-                        <input type="datetime-local" name="end" required>
-                    </div>
+<!-- CREATE EVENT -->
+<section class="event-section">
+    <h2>Create Event</h2>
+    <button onclick="openForm()">Create</button>
+</section>
 
-                    <div class="full">
-                        <label>Description</label>
-                        <textarea name="description"></textarea>
-                    </div>
 
-                    <div>
-                        <label>Ticket Price</label>
-                        <input type="number" step="0.01" name="price">
-                    </div>
+<div id="overlay" class="overlay" onclick="closeForm()"></div>
+<div id="popForm" class="popForm">
+    <h3>Create Event</h3>
+    <form method="POST" action="/create_event" class="form-card">
+        <div class="form-grid">
 
-                    <div class="poster full">
-                        <label>Poster/Sign</label>
-                        <input type="file" accept="image/*" id="file" required>
-                        <img src="#" alt="Image preview" id="preview">
-                    </div>
+            <div class="full">
+                <label>
+                    <input type="checkbox" id="changeVenueToggle">
+                    Use a different venue
+                </label>
+            </div>
 
-                    <div class="full">
-                        <button type="submit">Create Event</button>
-                    </div>
-                </div>
-            </form>
-            <button onclick="closeForm()">Close</button>
+            <div id="venueFields">
+                <input name="venue_name" placeholder="Venue Name">
+                <input name="street" placeholder="Street">
+                <input name="city" placeholder="City">
+                <input name="state" placeholder="State">
+                <input name="zip" placeholder="Zip">
+            </div>
+
+            <div id="VenueMessage" class="full" style="display:none;">
+                Using your saved venue
+            </div>
+
+            <div class="full">
+                <label>Event Name</label>
+                <input name="name" required placeholder="Event Name">
+            </div>
+
+            <div>
+                <label>Category</label>
+                <select name="category_id" required>
+                    <option value="" disabled selected>Select category</option>
+                    <option value="1">Music</option>
+                    <option value="2">Visual Arts</option>
+                    <option value="3">Performing Arts</option>
+                    <option value="4">Film</option>
+                    <option value="5">Lectures & Books</option>
+                    <option value="6">Fashion</option>
+                    <option value="7">Food & Drink</option>
+                    <option value="8">Festivals & Fairs</option>
+                    <option value="9">Charities</option>
+                    <option value="10">Sports & Active Life</option>
+                    <option value="11">Nightlife</option>
+                    <option value="12">Kids & Family</option>
+                    <option value="13">Other</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Time Slot</label>
+                <select name="time_id" required>
+                    <option value="" disabled selected>Select time</option>
+                    {% for t in time_slots %}
+                        <option value="{{ t.TimeID }}">
+                            {{ t.StartTime }} - {{ t.EndTime }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label>Start Date</label>
+                <input type="date" name="start" required>
+            </div>
+
+            <div>
+                <label>End Date</label>
+                <input type="date" name="end" required>
+            </div>
+
+            <div class="full">
+                <label>Description</label>
+                <textarea name="desc" placeholder="Describe your event..."></textarea>
+            </div>
+
+            <div>
+                <label>Ticket Price</label>
+                <input type="number" step="0.01" name="price" placeholder="0.00">
+            </div>
+
+            <div class="poster full">
+                <label>Poster / Image</label>
+                <input type="file" name="poster" accept="image/*" id="file">
+                <img id="preview" style="display:none;">
+            </div>
+
+            <div class="full">
+                <button type="submit">Create Event</button>
+            </div>
+
         </div>
-    </section>
+        </form>
+    <button onclick="closeForm()">Close</button>
+</div>
 
+<!-- VENUE POPUP -->
+<div id="venueOverlay" class="overlay" onclick="closeVenueForm()"></div>
 
-    <div class="map-container">
-        <div id="map" style="width:100%; height:400px;"></div>
-    </div>
+<div id="venueForm" class="popForm">
+    <h3>Set Venue</h3>
 
-    <footer>
-        <p>© 2026 EventHub. All rights reserved.</p>
-    </footer>
+    <form method="POST" action="/save_venue" class="form-card">
+        <div class="form-grid">
+
+        <input name="venue_name" placeholder="Venue Name" required>
+        <input name="street" placeholder="Street" required>
+        <input name="city" placeholder="City" required>
+        <input name="state" placeholder="State" required>
+        <input name="zip" placeholder="Zip" required>
+
+        <div class="full">
+        <button type="submit">Save Venue</button>
+        </div>
+
+        </div>
+    </form>
+    <button onclick="closeVenueForm()">Close</button>
+</div>
+
+<!-- MAP -->
+<div class="map-container">
+    <div id="map" style="height:400px;"></div>
+</div>
+
+<footer>
+    <p>© 2026 EventHub</p>
+</footer>
 
 <script>
-    const hasVenue = document.body.dataset.hasVenue === "True";
-    const venueFields = document.getElementById("venueFields");
-    const venueMsg = document.getElementById("VenueMessage");
+const hasVenue = document.body.dataset.hasVenue === "true";
+const venueFields = document.getElementById("venueFields");
+const venueMsg = document.getElementById("VenueMessage");
+const toggle = document.getElementById("changeVenueToggle");
 
-    if (hasVenue) {
-        venueFields.style.display = "none";
-        venueMsg.style.display = "block";
+function updateVenueUI(){
+    if(hasVenue && !toggle.checked){
+        venueFields.style.display="none";
+        venueMsg.style.display="block";
     } else {
-        venueFields.style.display = "block";
-        venueMsg.style.display = "none";
+        venueFields.style.display="block";
+        venueMsg.style.display="none";
     }
+}
 
+toggle?.addEventListener("change", updateVenueUI);
+updateVenueUI();
+
+function openForm(){
+    overlay.style.display="block";
+    popForm.style.display="block";
+    setTimeout(()=>popForm.classList.add("show"),10);
+}
+
+function closeForm(){
+    popForm.classList.remove("show");
+    setTimeout(()=>{
+        popForm.style.display="none";
+        overlay.style.display="none";
+    },200);
+}
+
+function openVenueForm(){
+    venueOverlay.style.display="block";
+    venueForm.style.display="block";
+    setTimeout(()=>venueForm.classList.add("show"),10);
+}
+
+function closeVenueForm(){
+    venueForm.classList.remove("show");
+    setTimeout(()=>{
+        venueForm.style.display="none";
+        venueOverlay.style.display="none";
+    },200);
+}
 </script>
 
 <script>
     const file = document.getElementById("file");
     const preview = document.getElementById("preview");
-    file.addEventListener("change", function () {
+
+    file?.addEventListener("change", function () {
         const files = file.files;
         if (files && files[0]) {
             const reader = new FileReader();
@@ -341,23 +454,10 @@
         }
     });
 </script>
-<script>
-    function openForm() {
-        document.getElementById("overlay").style.display = "block";
-        const form = document.getElementById("popForm");
-        form.style.display = "block";
-        setTimeout(() => form.classList.add("show"), 10);
-    }
 
-    function closeForm() {
-        const form = document.getElementById("popForm");
-        form.classList.remove("show");
-
-        setTimeout(() => {
-            form.style.display = "none";
-            document.getElementById("overlay").style.display = "none";
-        }, 200);
-    }
+<script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDRnWC5LJrp2i6SVmhpWHaIKpi8PC2xk6k&callback=initMap"
+    async defer>
 </script>
 
 <script>
@@ -366,73 +466,121 @@
         if (!res.ok) throw new Error("Failed to load /api/events");
         return await res.json();
     }
+
     async function initMap() {
+
         const map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 39.5, lng: -98.35 },
-        zoom: 4,
-        styles: [
-            {
-                elementType: "geometry",
-                stylers: [{ color: "#f8fafc" }]
-            },
-            {
-                featureType: "road",
-                elementType: "geometry",
-                stylers: [{ color: "#ffffff" }]
-            },
-            {
-                featureType: "water",
-                elementType: "geometry",
-                stylers: [{ color: "#cbd5e1" }]
-            },
-        ]
-    });
-
-    const events = await loadEvents();
-    const bounds = new google.maps.LatLngBounds();
-
-    events.forEach(e => {
-        const lat = Number(e.Latitude);
-        const lng = Number(e.Longitude);
-        const pos = { lat, lng };
-
-        const marker = new google.maps.Marker({
-            position: pos,
-            map,
-            title: e.EventName,
-            animation: google.maps.Animation.DROP,
-            icon: {
-                path: google.maps.SymbolPath.CIRCLE,
-                scale: 8,
-                fillColor: "#3b82f6",
-                fillOpacity: 1,
-                strokeColor: "#ffffff",
-                strokeWeight: 2,
-            }
+            center: { lat: 39.5, lng: -98.35 },
+            zoom: 4,
+            styles: [
+                { elementType: "geometry", stylers: [{ color: "#f8fafc" }] },
+                { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
+                { featureType: "water", elementType: "geometry", stylers: [{ color: "#cbd5e1" }] }
+            ]
         });
 
-        const info = new google.maps.InfoWindow({
-            content: `
-                <strong>${e.EventName}</strong><br>
-                ${e.VenueName}<br>
-                ${e.Location}
-            `
+        const events = await loadEvents();
+        const bounds = new google.maps.LatLngBounds();
+
+        events.forEach(e => {
+
+            if (!e.Latitude || !e.Longitude) return;
+
+            const pos = {
+                lat: Number(e.Latitude),
+                lng: Number(e.Longitude)
+            };
+
+            const marker = new google.maps.Marker({
+                position: pos,
+                map,
+                title: e.EventName,
+                animation: google.maps.Animation.DROP,
+                icon: {
+                    url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                }
+            });
+
+            const info = new google.maps.InfoWindow({
+                content: `
+                    <div style="
+                        max-width:220px;
+                        font-family:Arial;
+                    ">
+                        ${e.ImageURL ? `
+                            <img src="${e.ImageURL}" 
+                                style="
+                                    width:100%;
+                                    height:120px;
+                                    object-fit:cover;
+                                    border-radius:8px;
+                                    margin-bottom:6px;
+                                ">
+                        ` : ""}
+
+                        <h4 style="
+                            margin:4px 0;
+                            font-size:14px;
+                            color:#1e293b;
+                        ">
+                            ${e.EventName}
+                        </h4>
+
+                        <p style="
+                            margin:0;
+                            font-size:12px;
+                            color:#475569;
+                        ">
+                            ${e.VenueName}
+                        </p>
+
+                        <p style="
+                            margin:0;
+                            font-size:11px;
+                            color:#64748b;
+                        ">
+                            ${e.Location}
+                        </p>
+                    </div>
+                `
+            });
+
+            marker.addListener("click", () => info.open(map, marker));
+            bounds.extend(pos);
         });
 
-        marker.addListener("click", () => info.open(map, marker));
-        bounds.extend(pos);
-    });
+        if (events.length) {
+            map.fitBounds(bounds);
+        } else {
+            map.setCenter({ lat: 39.5, lng: -98.35 });
+            map.setZoom(4);
+        }
 
-    if (events.length) map.fitBounds(bounds);
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                const userPos = {
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude
+                };
+
+                new google.maps.Marker({
+                    position: userPos,
+                    map,
+                    title: "You are here",
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 8,
+                        fillColor: "#10b981",
+                        fillOpacity: 1,
+                        strokeColor: "#ffffff",
+                        strokeWeight: 2
+                    }
+                });
+            });
+        }
     }
 
     window.initMap = initMap;
 </script>
-
-<script
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDRnWC5LJrp2i6SVmhpWHaIKpi8PC2xk6k&callback=initMap"
-    async defer>
-</script>
-    
 </body>
 </html>

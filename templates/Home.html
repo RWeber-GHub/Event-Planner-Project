@@ -157,7 +157,7 @@
         .featured {
             padding: 60px 40px;
             text-align: center;
-            background: black;
+            background-image: linear-gradient(to bottom, black 40%, navy);
             color: white;
         }
 
@@ -207,7 +207,7 @@
         .roles {
             padding: 60px 40px;
             text-align: center;
-            background: rgb(51, 50, 52);
+            background: navy;
             color: white;
         }
 
@@ -239,6 +239,7 @@
 
         .map-container {
             position: relative;
+            background: black;
         }
 
         .map-search-wrapper {
@@ -327,16 +328,19 @@
         </div>
     </section>
 
-    <div class="map-container">
-        <div class="map-search-wrapper">
-            <div class="map-search">
-                <span class="search-icon">🔍</span>
-                <input id="searchBox" type="text" placeholder="Search city or venue..." />
+    <section>
+        <div class="map-container">
+            <div class="map-search-wrapper">
+                <div class="map-search">
+                    <span class="search-icon">🔍</span>
+                    <input id="searchBox" type="text" placeholder="Search for venue..." />
+                </div>
             </div>
-        </div>
 
-        <div id="map" style="width:100%; height:400px;"></div>
-    </div>
+            <div id="map" style="width:80%; height:600px; margin: auto;" ></div>
+        </div>
+    </section>
+    
 
     <section class="featured">
         <h2>Featured Events</h2>
