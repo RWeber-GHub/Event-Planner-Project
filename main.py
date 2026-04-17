@@ -40,39 +40,34 @@ from fastapi import Request
 from fastapi.responses import HTMLResponse
 import sqlite3
 
-@app.get("/", response_class=HTMLResponse)
-def read_root(request: Request):
+@app.get("/")
+def home(request: Request):
     conn = sqlite3.connect("app.db")
     conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
+    cur = conn.cursor()
 
-    cursor.execute("""
-        SELECT
-            Events.EventID,
-            Events.Name,
-            Events.StartDate,
-            Events.ImageURL,
-            Venues.VenueName AS VenueName,
-            Venues.Location AS VenueLocation
-        FROM Events
-        JOIN Venues ON Events.VenueID = Venues.VenueID
-        WHERE Events.Approved = 1
-          AND Events.PublicityLevel = 'Public'
-        ORDER BY date(Events.StartDate) ASC
-        LIMIT 3
+    cur.execute("""
+        SELECT 
+            e.EventID,
+            e.Name,
+            e.StartDate,
+            e.ImageURL,
+            v.VenueName
+        FROM Events e
+        JOIN EventVariants ev ON e.EventID = ev.EventID
+        LEFT JOIN Venues v ON ev.VenueID = v.VenueID
+        WHERE ev.Approved = 1
+        GROUP BY e.EventID
+        ORDER BY RANDOM()
+        LIMIT 6
     """)
 
-    featured_events = cursor.fetchall()
-    conn.close()
+    featured_events = cur.fetchall()
 
-    return templates.TemplateResponse(
-        "Home.html",
-        {
-            "request": request,
-            "name": "User",
-            "featured_events": featured_events
-        }
-    )
+    return templates.TemplateResponse("Home.html", {
+        "request": request,
+        "featured_events": featured_events
+    })
 
 @app.get("/db-test")
 async def db_test(db: AsyncSession = Depends(get_db)):
@@ -85,28 +80,36 @@ def user_dashboard(request: Request):
 
 @app.get("/venue_dashboard", response_class=HTMLResponse)
 async def venue_dashboard(request: Request,  db: AsyncSession = Depends(get_db)):
-    venue_id = request.session.get("VenueId")
-    has_venue = bool(venue_id)
+    try:
+        venues_result = await db.execute(text("""
+            SELECT VenueID, VenueName, Location, Reviews, SeatingCapacity 
+            FROM Venues
+        """))
+        venues = venues_result.mappings().all()
 
-    venue_name = None
-
-    if venue_id:
         result = await db.execute(text("""
-            SELECT VenueName FROM Venues WHERE VenueID = :id
-        """), {"id": venue_id})
-
-        venue_name = result.scalar()
-        result = await db.execute(text("""
-            SELECT TimeID, StartTime, EndTime 
+            SELECT TimeID, TimeStart, TimeEnd 
             FROM TimeSlots
         """))
         time_slots = result.mappings().all()
+
+        print("VENUES:", venues)
+        print("TIME SLOTS:", time_slots)
+
         return templates.TemplateResponse("VenueDashboard.html", {
             "request": request,
-            "has_venue": has_venue,
-            "venue_name": venue_name,
+            "venues": venues,
             "time_slots": time_slots
         })
+
+    except Exception as e:
+        print("ERROR:", e)
+        raise
+
+@app.post("/save_venue_choice")
+async def save_venue_choice(request: Request, VenueID: int = Form(...)):
+    request.session["venue_id"] = VenueID
+    return RedirectResponse("/venue_dashboard", status_code=303)
 
 @app.get("/register", response_class=HTMLResponse)
 def register_page(request: Request):
@@ -118,7 +121,7 @@ async def register_post(
     email: str = Form(...),
     password: str = Form(...),
     role: str = Form(...),
-    type: str = Form(...),
+    name: str = Form(...),
     db: AsyncSession = Depends(get_db),
 ):
     email = email.strip().lower()
@@ -140,10 +143,10 @@ async def register_post(
     try:
         await db.execute(
             text("""
-                INSERT INTO users (Email, Password, Role, Status)
-                VALUES (:email, :password, :role, 'Active')
+                INSERT INTO Users (Name, Email, Password, Role, Status)
+                VALUES (:name, :email, :password, :role, 'Active')
             """),
-            {"email": email, "password": hashed, "role": role},
+            {"name": name, "email": email, "password": hashed, "role": role},
         )
         await db.commit()
 
@@ -153,10 +156,12 @@ async def register_post(
         print("ERROR MESSAGE:", repr(e))
         raise
 
-    if type == "User":
+    if role == "seeker":
         return RedirectResponse(url="/user_dashboard", status_code=303)
-    if type == "Venue":
+    if role == "host":
         return RedirectResponse(url="/venue_dashboard", status_code=303)
+    if role == "admin":
+        return RedirectResponse(url="/admin_view", status_code=303)
 
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
@@ -199,98 +204,119 @@ async def login_post(
         "UserID": user["UserID"],
         "Role": user["Role"]
     }
-    if user["Role"] == "User":
+    if user["Role"] == "seeker":
         return RedirectResponse(url="/user_dashboard", status_code=303)
-    if user["Role"] == "Venue":
+    if user["Role"] == "host":
         return RedirectResponse(url="/venue_dashboard", status_code=303)
+    if user["Role"] == "admin":
+        return RedirectResponse(url="/admin_view", status_code=303)
     
 
 engine = create_engine("sqlite+aiosqlite:///./app.db", future=True)
 geolocator = Nominatim(user_agent="eventhub_app") 
 
-@app.get("/api/events")
-async def get_events(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(text("""
-        SELECT
-            e.EventID,
-            e.Name AS EventName,
-            v.VenueName AS VenueName,
-            v.Location,
-            e.ImageURL
-        FROM Events e
-        JOIN Venues v ON v.VenueID = e.VenueID
-        
-    """))
-    # WHERE e.Approved = 1
-
-    rows = result.mappings().all()
-    events = []
-
-    for r in rows:
-        lat, lng = None, None
-
-        if r["Location"] and "," in r["Location"]:
-            try:
-                lat, lng = map(float, r["Location"].split(","))
-            except Exception as e:
-                print("BAD LOCATION:", r["Location"], e)
-
-        events.append({
-            "EventID": r["EventID"],
-            "EventName": r["EventName"],
-            "VenueName": r["VenueName"],
-            "Location": r["Location"],
-            "ImageURL": r["ImageURL"],
-            "Latitude": lat,
-            "Longitude": lng
-        })
-
-    return events
-
-@app.get("/events", response_class=HTMLResponse)
-async def events_page(
-    request: Request,
-    category: int | None = None,
-    db: AsyncSession = Depends(get_db)
-):
+@app.get("/events")
+def browse_events(request: Request, category: int = None):
+    conn = sqlite3.connect("app.db")
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
 
     query = """
-        SELECT
+        SELECT 
+            ev.VariantID,
             e.EventID,
             e.Name,
-            e.StartDate,
-            e.EndDate,
-            e.TicketPrice,
             e.ImageURL,
+            e.StartDate,
+            c.Name AS Category,
             v.VenueName,
             v.Location,
-            c.Name as Category
-        FROM Events e
-        JOIN Venues v ON v.VenueID = e.VenueID
-        JOIN Category c ON c.CategoryID = e.CategoryID
-        WHERE e.Approved = 1
+            ev.TicketPrice
+        FROM EventVariants ev
+        JOIN Events e ON ev.EventID = e.EventID
+        LEFT JOIN Venues v ON ev.VenueID = v.VenueID
+        JOIN Category c ON e.CategoryID = c.CategoryID
+        WHERE ev.Publicity = 0
+        AND ev.Approved = 1
     """
 
-    params = {}
+    params = []
 
     if category:
-        query += " AND e.CategoryID = :category"
-        params["category"] = category
+        query += " AND e.CategoryID = ?"
+        params.append(category)
 
-    result = await db.execute(text(query), params)
-    events = result.mappings().all()
+    query += " ORDER BY e.StartDate ASC"
 
-    cat_result = await db.execute(text("SELECT * FROM Category"))
-    categories = cat_result.mappings().all()
+    cur.execute(query, params)
+    events = cur.fetchall()
 
-    return templates.TemplateResponse(
-        "EventDetails.html",
-        {
-            "request": request,
-            "events": events,
-            "categories": categories
-        }
-    )
+    cur.execute("SELECT * FROM Category")
+    categories = cur.fetchall()
+
+    return templates.TemplateResponse("EventDetails.html", {
+        "request": request,
+        "events": events,
+        "categories": categories
+    })
+
+@app.get("/api/events")
+def get_events():
+    conn = sqlite3.connect("app.db")
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT 
+            e.EventID,
+            e.Name AS EventName,
+            v.VenueName,
+            v.Location,
+            v.Latitude,
+            v.Longitude
+        FROM Events e
+        JOIN EventVariants ev ON e.EventID = ev.EventID
+        LEFT JOIN Venues v ON ev.VenueID = v.VenueID
+        WHERE ev.Approved = 1
+    """)
+
+    rows = cur.fetchall()
+
+    return [dict(row) for row in rows]
+
+@app.get("/events/view/{variant_id}")
+def event_view(request: Request, variant_id: int):
+    conn = sqlite3.connect("app.db")
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT 
+            ev.VariantID,
+            e.Name,
+            e.Description,
+            e.ImageURL,
+            e.StartDate,
+            c.Name AS Category,
+            v.VenueName,
+            v.Location,
+            ev.TicketPrice,
+            ts.TimeStart,
+            ts.TimeEnd
+        FROM EventVariants ev
+        JOIN Events e ON ev.EventID = e.EventID
+        LEFT JOIN Venues v ON ev.VenueID = v.VenueID
+        JOIN Category c ON e.CategoryID = c.CategoryID
+        JOIN TimeSlots ts ON ev.SlotID = ts.SlotID
+        WHERE ev.VariantID = ?
+    """, (variant_id,))
+
+    event = cur.fetchone()
+
+    return templates.TemplateResponse("EventView.html", {
+        "request": request,
+        "event": event
+    })
 
 @app.post("/create_event")
 async def create_event(
@@ -301,54 +327,52 @@ async def create_event(
     time_id: int = Form(...),
     category_id: int = Form(...),
     desc: str = Form(...),
-    venue_name: str = Form(None),
-    street: str = Form(None),
-    city: str = Form(None),
-    state: str = Form(None),
-    zip: str = Form(None),
-    price: float = Form(...),
-    poster: UploadFile = File(None),
+    price: int = Form(...),
     db: AsyncSession = Depends(get_db),
 ):
     try:
+        venue_id = request.session.get("venue_id")
+
+        if not venue_id:
+           return {"error": "Please select a venue first"}
         print("SESSION:", request.session)
         user = request.session.get("user")
         if not user:
             return RedirectResponse("/login", status_code=303)
         
-        venue_id = request.session.get("VenueId")
+        # venue_id = request.session.get("VenueId")
 
-        if venue_name and city and state:
+        # if venue_name and city and state:
     
-            full_address = f"{street}, {city}, {state} {zip}"
+        #     full_address = f"{street}, {city}, {state} {zip}"
 
-            print("ADDRESS:", full_address)
+        #     print("ADDRESS:", full_address)
 
-            geo = geolocator.geocode(full_address)
+        #     geo = geolocator.geocode(full_address)
 
-            print("GEO RESULT:", geo)
+        #     print("GEO RESULT:", geo)
 
-            if not geo:
-                return {"error": "Invalid address"}
+        #     if not geo:
+        #         return {"error": "Invalid address"}
             
-            location = f"{geo.latitude},{geo.longitude}"
+        #     location = f"{geo.latitude},{geo.longitude}"
 
-            result = await db.execute(text("""
-                INSERT INTO venues (VenueName, Location)
-                VALUES (:name, :location)
-                RETURNING VenueID
-            """), {
-                "name": venue_name,
-                "location": location
-            })
+        #     result = await db.execute(text("""
+        #         INSERT INTO venues (VenueName, Location)
+        #         VALUES (:name, :location)
+        #         RETURNING VenueID
+        #     """), {
+        #         "name": venue_name,
+        #         "location": location
+        #     })
 
-            venue_id = result.scalar()
-            await db.commit()
+        #     venue_id = result.scalar()
+        #     await db.commit()
 
-            request.session["VenueId"] = venue_id
+        #     request.session["VenueId"] = venue_id
 
-        if not venue_id:
-            return {"error": "Please enter a venue"}
+        # if not venue_id:
+        #     return {"error": "Please enter a venue"}
 
         await db.execute(text("""
             INSERT INTO events (
@@ -411,8 +435,11 @@ async def save_venue(
             RETURNING VenueID
         """), {
             "name": venue_name,
-            "location": location
-        })
+            "Location": full_address,
+            "Longitude": f"{geo.longitude}",
+            "Latitude": f"{geo.latitude}",
+
+        })      
 
         venue_id = result.scalar()
         await db.commit()
@@ -423,3 +450,69 @@ async def save_venue(
         return {"error": str(e)}
 
     return RedirectResponse("/venue_dashboard", status_code=303)
+
+@app.get("/admin_view", response_class=HTMLResponse)
+def admin_view(request: Request):
+    user = request.session.get("user")
+
+    if not user or user.get("Role") != "admin":
+        return RedirectResponse("/login", status_code=303)
+
+    conn = sqlite3.connect("app.db")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM Venues")
+    venues = cursor.fetchall()
+
+    conn.close()
+
+    return templates.TemplateResponse(
+        "AdminView.html",
+        {
+            "request": request,
+            "venues": venues
+        }
+    )
+
+@app.post("/admin/add-venue")
+def add_venue(
+    request: Request,
+    VenueName: str = Form(...),
+    City: str = Form(...),
+    State: str = Form(...),
+    SeatingCapacity: int = Form(None),
+    Reviews: str = Form(None),
+    Latitude: float = Form(...),
+    Longitude: float = Form(...)
+):
+    user = request.session.get("user")
+
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    owner_id = user["UserID"]
+
+    Location = f"{City}, {State}"
+
+    with sqlite3.connect("app.db", timeout=10) as conn:
+        conn.execute("PRAGMA journal_mode=WAL;")
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            INSERT INTO Venues
+            (VenueName, Location, Reviews, SeatingCapacity, OwnerID, Latitude, Longitude)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (
+            VenueName,
+            Location,
+            Reviews,
+            SeatingCapacity,
+            owner_id,
+            Latitude,
+            Longitude
+        ))
+
+        conn.commit()
+
+    return RedirectResponse("/admin_view", status_code=303)

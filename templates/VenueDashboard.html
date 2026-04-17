@@ -6,7 +6,7 @@
 <title>Venue Dashboard</title>
 </head>
 
-<body data-has-venue="{{ has_venue | lower }}">
+<body>
 
 <style>
 * {
@@ -219,6 +219,32 @@ button:hover {
     z-index: 5;
 }
 
+.venues-wrapper {
+    overflow-x: auto;
+    padding: 20px;
+}
+
+.venues-scroll {
+    display: flex;
+    gap: 16px;
+}
+
+.venue-card {
+    min-width: 250px;
+    flex: 0 0 auto;
+    background: #111;
+    color: #fff;
+    padding: 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.venue-card.selected {
+    border: 2px solid #00ff88;
+    background: #1a1a1a;
+}
+
 /* FOOTER */
 footer {
     text-align: center;
@@ -243,13 +269,6 @@ footer {
 
 <section class="event-section">
     <h2>Your Venue</h2>
-    <p>
-    {% if venue_name %}
-        Current: <strong>{{ venue_name }}</strong>
-    {% else %}
-        No venue set
-    {% endif %}
-    </p>
     <button onclick="openVenueForm()">Set / Edit Venue</button>
 </section>
 
@@ -265,25 +284,6 @@ footer {
     <h3>Create Event</h3>
     <form method="POST" action="/create_event" class="form-card">
         <div class="form-grid">
-
-            <div class="full">
-                <label>
-                    <input type="checkbox" id="changeVenueToggle">
-                    Use a different venue
-                </label>
-            </div>
-
-            <div id="venueFields">
-                <input name="venue_name" placeholder="Venue Name">
-                <input name="street" placeholder="Street">
-                <input name="city" placeholder="City">
-                <input name="state" placeholder="State">
-                <input name="zip" placeholder="Zip">
-            </div>
-
-            <div id="VenueMessage" class="full" style="display:none;">
-                Using your saved venue
-            </div>
 
             <div class="full">
                 <label>Event Name</label>
@@ -316,7 +316,7 @@ footer {
                     <option value="" disabled selected>Select time</option>
                     {% for t in time_slots %}
                         <option value="{{ t.TimeID }}">
-                            {{ t.StartTime }} - {{ t.EndTime }}
+                            {{ t.TimeStart }} - {{ t.TimeEnd }}
                         </option>
                     {% endfor %}
                 </select>
@@ -360,27 +360,27 @@ footer {
 <!-- VENUE POPUP -->
 <div id="venueOverlay" class="overlay" onclick="closeVenueForm()"></div>
 
-<div id="venueForm" class="popForm">
-    <h3>Set Venue</h3>
+<!-- <div id="venueForm" class="popForm">
+<form method="POST" action="/save_venue_choice" id="venueFormSelect">
+    <input type="hidden" name="VenueID" id="selectedVenue">
 
-    <form method="POST" action="/save_venue" class="form-card">
-        <div class="form-grid">
+    <div class="venues-wrapper">
+        <div class="venues-scroll">
 
-        <input name="venue_name" placeholder="Venue Name" required>
-        <input name="street" placeholder="Street" required>
-        <input name="city" placeholder="City" required>
-        <input name="state" placeholder="State" required>
-        <input name="zip" placeholder="Zip" required>
+            {% for venue in venues %}
+            <div class="venue-card" onclick="selectVenue(this, '{{ venue.VenueID }}')">
+                <h3>{{ venue.VenueName }}</h3>
+                <p>{{ venue.Location }}</p>
+                <p>Capacity: {{ venue.SeatingCapacity or 'N/A' }}</p>
+            </div>
+            {% endfor %}
 
-        <div class="full">
-        <button type="submit">Save Venue</button>
         </div>
+    </div>
 
-        </div>
-    </form>
-    <button onclick="closeVenueForm()">Close</button>
-</div>
-
+    <button type="submit">Confirm Selection</button>
+</form>
+</div> -->
 <!-- MAP -->
 <div class="map-container">
     <div id="map" style="height:400px;"></div>
@@ -391,23 +391,32 @@ footer {
 </footer>
 
 <script>
-const hasVenue = document.body.dataset.hasVenue === "true";
-const venueFields = document.getElementById("venueFields");
-const venueMsg = document.getElementById("VenueMessage");
-const toggle = document.getElementById("changeVenueToggle");
+function selectVenue(element, venueId) {
+    document.querySelectorAll(".venue-card").forEach(card => {
+        card.classList.remove("selected");
+    });
 
-function updateVenueUI(){
-    if(hasVenue && !toggle.checked){
-        venueFields.style.display="none";
-        venueMsg.style.display="block";
-    } else {
-        venueFields.style.display="block";
-        venueMsg.style.display="none";
-    }
+    element.classList.add("selected");
+
+    document.getElementById("selectedVenue").value = venueId;
 }
 
-toggle?.addEventListener("change", updateVenueUI);
-updateVenueUI();
+document.getElementById("venueFormSelect").addEventListener("submit", function(e) {
+    const selected = document.getElementById("selectedVenue").value;
+
+    if (!selected) {
+        e.preventDefault();
+        alert("Please select a venue");
+    }
+});
+</script>
+
+<script>
+    const overlay = document.getElementById("overlay");
+const popForm = document.getElementById("popForm");
+const venueOverlay = document.getElementById("venueOverlay");
+const venueForm = document.getElementById("venueForm");
+
 
 function openForm(){
     overlay.style.display="block";
@@ -469,6 +478,10 @@ function closeVenueForm(){
 
     async function initMap() {
 
+        if (!(window.google && google.maps)) {
+            console.error("Google Maps failed to load");
+            return;
+        }
         const map = new google.maps.Map(document.getElementById("map"), {
             center: { lat: 39.5, lng: -98.35 },
             zoom: 4,
