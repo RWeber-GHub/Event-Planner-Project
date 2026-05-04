@@ -357,7 +357,7 @@
                         <p>{{ event["StartDate"] }}</p>
                         <p>{{ event["VenueName"] }}</p>
 
-                        <a href="/events/{{ event['EventID'] }}" class="event-btn">View Details</a>
+                        <a href="/events/view/{{ event['VariantID'] }}" class="event-btn">View Details</a>
                     </div>
                 {% endfor %}
             {% else %}
@@ -418,139 +418,20 @@
         }, 5000);
     </script>
 
-    <script>
-        async function loadEvents() {
-            const res = await fetch("/api/events");
-            if (!res.ok) throw new Error("Failed to load /api/events");
-            return await res.json();
-        }
+    <script type="module">
+    import { initMap } from "/static/js/map.js";
 
-        async function initMap() {
-            const map = new google.maps.Map(document.getElementById("map"), {
-                center: { lat: 39.5, lng: -98.35 },
-                zoom: 4,
-                streetViewControl: false,
-                mapTypeControl: false,
-                fullscreenControl: false,
-                zoomControl: true,
-                styles: [
-                    { elementType: "geometry", stylers: [{ color: "#1f2937" }] },
-                    { elementType: "labels.text.stroke", stylers: [{ color: "#111827" }] },
-                    { elementType: "labels.text.fill", stylers: [{ color: "#9ca3af" }] },
-                    {
-                        featureType: "road",
-                        elementType: "geometry",
-                        stylers: [{ color: "#374151" }]
-                    },
-                    {
-                        featureType: "water",
-                        elementType: "geometry",
-                        stylers: [{ color: "#0f172a" }]
-                    }
-                ]
-            });
-
-            const events = await loadEvents();
-            const bounds = new google.maps.LatLngBounds();
-            const markers = [];
-
-            events.forEach(e => {
-                const lat = Number(e.Latitude);
-                const lng = Number(e.Longitude);
-
-                if (!lat || !lng) return;
-
-                const pos = { lat, lng };
-
-                const marker = new google.maps.Marker({
-                    position: pos,
-                    map,
-                    title: e.EventName,
-                    animation: google.maps.Animation.DROP,
-                    icon: {
-                        path: google.maps.SymbolPath.CIRCLE,
-                        scale: 8,
-                        fillColor: "#3b82f6",
-                        fillOpacity: 1,
-                        strokeColor: "#ffffff",
-                        strokeWeight: 2,
-                    }
-                });
-
-                const infoWindow = new google.maps.InfoWindow({
-                    content: `
-                        <div style="padding:10px; max-width:220px;">
-                            <h3 style="margin:0; color:#3b82f6;">
-                                ${e.EventName}
-                            </h3>
-                            <p style="margin:6px 0;">
-                                ${e.VenueName}
-                            </p>
-                            <small>${e.Location}</small>
-                            <br>
-                            <a href="/events/${e.EventID}"
-                               style="display:inline-block;
-                                      margin-top:8px;
-                                      padding:6px 10px;
-                                      background:#3b82f6;
-                                      color:white;
-                                      border-radius:4px;
-                                      text-decoration:none;">
-                                View Event
-                            </a>
-                        </div>
-                    `
-                });
-
-                marker.addListener("click", () => {
-                    infoWindow.open(map, marker);
-                });
-
-                markers.push(marker);
-                bounds.extend(pos);
-            });
-
-            if (markers.length) {
-                map.fitBounds(bounds);
-            }
-
-            const input = document.getElementById("searchBox");
-
-            if (input) {
-                const searchBox = new google.maps.places.SearchBox(input);
-
-                map.addListener("bounds_changed", () => {
-                    searchBox.setBounds(map.getBounds());
-                });
-
-                let searchMarker;
-
-                searchBox.addListener("places_changed", () => {
-                    const places = searchBox.getPlaces();
-                    if (!places.length) return;
-
-                    const place = places[0];
-                    if (!place.geometry || !place.geometry.location) return;
-
-                    if (searchMarker) searchMarker.setMap(null);
-
-                    searchMarker = new google.maps.Marker({
-                        map,
-                        position: place.geometry.location,
-                        animation: google.maps.Animation.DROP,
-                    });
-
-                    map.panTo(place.geometry.location);
-                    map.setZoom(12);
-                });
-            }
-        }
-
-        window.initMap = initMap;
+    window.addEventListener("load", () => {
+        initMap({
+            mapId: "map",
+            api: "/api/events",
+            enableSearch: true
+        });
+    });
     </script>
 
     <script
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDRnWC5LJrp2i6SVmhpWHaIKpi8PC2xk6k&libraries=places&callback=initMap"
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDRnWC5LJrp2i6SVmhpWHaIKpi8PC2xk6k&libraries=places"
         async defer>
     </script>
 </body>

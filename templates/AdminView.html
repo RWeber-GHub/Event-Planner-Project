@@ -116,19 +116,23 @@
 
         <form action="/admin/add-venue" method="POST">
 
-            <input type="text" name="VenueName" placeholder="Venue Name" required>
+            <input type="text" name="venue_name" placeholder="Venue Name" required>
 
-            <input type="text" name="City" placeholder="City" required>
+            <input type="text" name="city" placeholder="City" required>
 
-            <input type="text" name="State" placeholder="State (e.g. PA)" required>
+            <input type="text" name="state" placeholder="State (e.g. PA)" required>
 
+            <input type="text" name="street" placeholder="Street" required>
+            
+            <input type="text" name="zip" placeholder="Zip" required>
+            <!-- 
             <input type="number" step="any" name="Latitude" placeholder="Latitude" required>
 
-            <input type="number" step="any" name="Longitude" placeholder="Longitude" required>
+            <input type="number" step="any" name="Longitude" placeholder="Longitude" required> -->
 
-            <input type="number" step="0.1" name="SeatingCapacity" placeholder="Seating Capacity">
+            <input type="number" step="0.1" name="seating_capacity" placeholder="Seating Capacity">
 
-            <textarea name="Reviews" placeholder="Notes / Reviews"></textarea>
+            <textarea name="reviews" placeholder="Notes / Reviews"></textarea>
 
             <button type="submit">Add Venue</button>
         </form>
@@ -168,7 +172,6 @@ function initAutocomplete() {
         const lat = place.geometry.location.lat();
         const lng = place.geometry.location.lng();
 
-        // extract CITY, STATE only
         let cityState = "";
 
         if (place.address_components) {

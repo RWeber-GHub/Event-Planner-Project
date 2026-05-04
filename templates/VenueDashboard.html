@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Venue Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venue Dashboard</title>
 </head>
 
 <body>
@@ -29,6 +30,8 @@
 .logo {
     font-size: 1.5rem;
     font-weight: bold;
+    color: white;
+    text-decoration: none;
 }
 
 .nav-links {
@@ -201,7 +204,7 @@ button:hover {
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-    border: 1px solid #e2e8f0;
+    border: 1px solid #0000;
     position: relative;
 }
 
@@ -255,34 +258,35 @@ footer {
 </style>
 
 <header>
-<nav class="navbar">
-    <div class="logo">EventHub</div>
-    <ul class="nav-links">
-        <li><a href="#">Browse</a></li>
-        <li><a href="/login">Login</a></li>
-    </ul>
-</nav>
+    <nav class="navbar">
+        <div><a class="logo" href="/">EventHub</a></div>
+        <ul class="nav-links">
+            <li><a href="#">Browse</a></li>
+            <li><a href="/login">Login</a></li>
+        </ul>
+    </nav>
 </header>
 
 <h1 style="text-align:center;margin-top:20px;">Venue Dashboard</h1>
 
-
 <section class="event-section">
-    <h2>Your Venue</h2>
-    <button onclick="openVenueForm()">Set / Edit Venue</button>
+    <h2 id="venueTitle">Your Venue</h2>
+    <button onclick="openVenueForm()">Set Venue</button>
 </section>
 
-<!-- CREATE EVENT -->
+<input type="hidden" id="savedVenueId" value="{{ savedVenueId }}">
+
 <section class="event-section">
     <h2>Create Event</h2>
     <button onclick="openForm()">Create</button>
 </section>
 
-
 <div id="overlay" class="overlay" onclick="closeForm()"></div>
+
 <div id="popForm" class="popForm">
     <h3>Create Event</h3>
-    <form method="POST" action="/create_event" class="form-card">
+
+    <form method="POST" action="/create_event" enctype="multipart/form-data" class="form-card">
         <div class="form-grid">
 
             <div class="full">
@@ -312,10 +316,10 @@ footer {
 
             <div>
                 <label>Time Slot</label>
-                <select name="time_id" required>
+                <select name="slot_id" required>
                     <option value="" disabled selected>Select time</option>
                     {% for t in time_slots %}
-                        <option value="{{ t.TimeID }}">
+                        <option value="{{ t.SlotID }}">
                             {{ t.TimeStart }} - {{ t.TimeEnd }}
                         </option>
                     {% endfor %}
@@ -348,47 +352,124 @@ footer {
                 <img id="preview" style="display:none;">
             </div>
 
+            <input type="hidden" name="venue_id" id="eventVenue">
+
             <div class="full">
                 <button type="submit">Create Event</button>
             </div>
 
         </div>
-        </form>
+    </form>
+
     <button onclick="closeForm()">Close</button>
 </div>
 
-<!-- VENUE POPUP -->
 <div id="venueOverlay" class="overlay" onclick="closeVenueForm()"></div>
 
-<!-- <div id="venueForm" class="popForm">
-<form method="POST" action="/save_venue_choice" id="venueFormSelect">
-    <input type="hidden" name="VenueID" id="selectedVenue">
+<div id="venueForm" class="popForm">
+    <form method="POST" action="/save_venue_choice" id="venueFormSelect">
 
-    <div class="venues-wrapper">
-        <div class="venues-scroll">
+        <input type="hidden" name="VenueID" id="selectedVenue">
 
-            {% for venue in venues %}
-            <div class="venue-card" onclick="selectVenue(this, '{{ venue.VenueID }}')">
-                <h3>{{ venue.VenueName }}</h3>
-                <p>{{ venue.Location }}</p>
-                <p>Capacity: {{ venue.SeatingCapacity or 'N/A' }}</p>
+        <div class="venues-wrapper">
+            <div class="venues-scroll">
+
+                {% for venue in venues %}
+                <div class="venue-card {% if venue.VenueID == savedVenueId %}selected{% endif %}"
+                data-id="{{ venue.VenueID }}"
+                onclick="selectVenue(this, '{{ venue.VenueID }}')">
+                    <h3>{{ venue.VenueName }}</h3>
+                    <p>{{ venue.Location }}</p>
+                    <p>Capacity: {{ venue.SeatingCapacity or 'N/A' }}</p>
+                </div>
+                {% endfor %}
+
             </div>
-            {% endfor %}
+        </div>
 
+        <button type="submit">Confirm Selection</button>
+    </form>
+</div>
+
+<div id="posterModal" style="
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.9);
+    z-index:9999;
+    align-items:center;
+    justify-content:center;
+">
+
+    <span onclick="closePoster()" style="
+        position:absolute;
+        top:20px;
+        right:30px;
+        font-size:30px;
+        color:white;
+        cursor:pointer;
+        z-index:10000;
+    ">✕</span>
+
+    <div style="
+        max-width:900px;
+        width:90%;
+        background:white;
+        border-radius:16px;
+        overflow:hidden;
+    ">
+        <img id="posterModalImg" style="
+            width:100%;
+            max-height:60vh;
+            object-fit:contain;
+            background:black;
+        ">
+
+        <div style="padding:16px;">
+            <h2 id="modalTitle"></h2>
+            <p id="modalVenue"></p>
+            <p id="modalLocation"></p>
         </div>
     </div>
+</div>
 
-    <button type="submit">Confirm Selection</button>
-</form>
-</div> -->
-<!-- MAP -->
 <div class="map-container">
-    <div id="map" style="height:400px;"></div>
+    <div id="map" style="width:100%; height:500px;"></div>
 </div>
 
 <footer>
     <p>© 2026 EventHub</p>
 </footer>
+
+<script>
+window.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById("posterModal");
+
+    modal?.addEventListener("click", (e) => {
+        if (e.target.id === "posterModal") closePoster();
+    });
+});
+
+
+function closePoster() {
+    document.getElementById("posterModal").style.display = "none";
+}
+function openPosterByIndex(index) {
+    const event = MAP_EVENTS[index];
+
+    if (!event) {
+        console.error("Event not found");
+        return;
+    }
+
+    document.getElementById("posterModalImg").src = event.ImageURL;
+    document.getElementById("modalTitle").textContent = event.EventName;
+    document.getElementById("modalVenue").textContent = event.VenueName;
+    document.getElementById("modalLocation").textContent = event.Location;
+
+    document.getElementById("posterModal").style.display = "flex";
+}
+</script>
 
 <script>
 function selectVenue(element, venueId) {
@@ -399,7 +480,14 @@ function selectVenue(element, venueId) {
     element.classList.add("selected");
 
     document.getElementById("selectedVenue").value = venueId;
+    document.getElementById("eventVenue").value = venueId;
+
+    const venueName = element.querySelector("h3").innerText;
+    document.getElementById("venueTitle").innerText = "Your Venue: " + venueName;
 }
+</script>
+
+<script>
 
 document.getElementById("venueFormSelect").addEventListener("submit", function(e) {
     const selected = document.getElementById("selectedVenue").value;
@@ -412,11 +500,10 @@ document.getElementById("venueFormSelect").addEventListener("submit", function(e
 </script>
 
 <script>
-    const overlay = document.getElementById("overlay");
+const overlay = document.getElementById("overlay");
 const popForm = document.getElementById("popForm");
 const venueOverlay = document.getElementById("venueOverlay");
 const venueForm = document.getElementById("venueForm");
-
 
 function openForm(){
     overlay.style.display="block";
@@ -448,20 +535,35 @@ function closeVenueForm(){
 </script>
 
 <script>
-    const file = document.getElementById("file");
-    const preview = document.getElementById("preview");
+    window.addEventListener("DOMContentLoaded", () => {
+    const selected = document.querySelector(".venue-card.selected");
 
-    file?.addEventListener("change", function () {
-        const files = file.files;
-        if (files && files[0]) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                preview.src = e.target.result;
-                preview.style.display = "block";
-            };
-            reader.readAsDataURL(files[0]);
-        }
-    });
+    if (selected) {
+        const venueName = selected.querySelector("h3").innerText;
+        document.getElementById("venueTitle").innerText = "Your Venue: " + venueName;
+
+        const venueId = selected.dataset.id;
+        document.getElementById("selectedVenue").value = venueId;
+        document.getElementById("eventVenue").value = venueId;
+    }
+});
+</script>
+
+<script>
+const file = document.getElementById("file");
+const preview = document.getElementById("preview");
+
+file?.addEventListener("change", function () {
+    const files = file.files;
+    if (files && files[0]) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            preview.src = e.target.result;
+            preview.style.display = "block";
+        };
+        reader.readAsDataURL(files[0]);
+    }
+});
 </script>
 
 <script
@@ -470,130 +572,152 @@ function closeVenueForm(){
 </script>
 
 <script>
-    async function loadEvents() {
-        const res = await fetch("/api/events");
-        if (!res.ok) throw new Error("Failed to load /api/events");
-        return await res.json();
+async function loadEvents() {
+    const res = await fetch("/api/events");
+
+    if (!res.ok) {
+        console.error("API failed");
+        return [];
     }
 
-    async function initMap() {
+    const data = await res.json();
+    console.log("Loaded events:", data);
+    return data;
+}
 
-        if (!(window.google && google.maps)) {
-            console.error("Google Maps failed to load");
+let MAP_EVENTS = []; 
+
+async function initMap() {
+
+    if (!(window.google && google.maps)) {
+        console.error("Google Maps failed to load");
+        return;
+    }
+
+    const map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 39.5, lng: -98.35 },
+        zoom: 4,
+        styles: [
+            { elementType: "geometry", stylers: [{ color: "#f8fafc" }] },
+            { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
+            { featureType: "water", elementType: "geometry", stylers: [{ color: "#cbd5e1" }] }
+        ]
+    });
+
+    const events = await loadEvents();
+    MAP_EVENTS = events;
+    const bounds = new google.maps.LatLngBounds();
+
+    let hasMarkers = false;
+
+    events.forEach((e, i) => {
+
+        const lat = parseFloat(e.Latitude);
+        const lng = parseFloat(e.Longitude);
+
+        if (isNaN(lat) || isNaN(lng)) {
+            console.warn("Invalid coords:", e);
             return;
         }
-        const map = new google.maps.Map(document.getElementById("map"), {
-            center: { lat: 39.5, lng: -98.35 },
-            zoom: 4,
-            styles: [
-                { elementType: "geometry", stylers: [{ color: "#f8fafc" }] },
-                { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
-                { featureType: "water", elementType: "geometry", stylers: [{ color: "#cbd5e1" }] }
-            ]
+
+        hasMarkers = true;
+
+        const pos = { lat, lng };
+
+        const marker = new google.maps.Marker({
+            position: pos,
+            map,
+            title: e.EventName,
+            animation: google.maps.Animation.DROP,
+            icon: {
+                url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+            }
         });
 
-        const events = await loadEvents();
-        const bounds = new google.maps.LatLngBounds();
+        const info = new google.maps.InfoWindow({
+            content: `
+                <div style="
+                    width:220px;
+                    font-family:Arial;
+                ">
+                    <h4 style="
+                        margin:4px 0;
+                        font-size:14px;
+                        color:#1e293b;
+                    ">
+                        ${e.EventName}
+                    </h4>
 
-        events.forEach(e => {
+                    <p style="
+                        margin:0;
+                        font-size:12px;
+                        color:#475569;
+                    ">
+                        ${e.VenueName}
+                    </p>
 
-            if (!e.Latitude || !e.Longitude) return;
+                    <p style="
+                        margin:0 0 8px;
+                        font-size:11px;
+                        color:#64748b;
+                    ">
+                        ${e.Location}
+                    </p>
 
-            const pos = {
-                lat: Number(e.Latitude),
-                lng: Number(e.Longitude)
+                    ${e.ImageURL ? `
+                        <button 
+                            onclick="openPosterByIndex(${i})"                            
+                            style="
+                                width:100%;
+                                padding:6px;
+                                border:none;
+                                border-radius:6px;
+                                background:#2563eb;
+                                color:white;
+                                font-size:12px;
+                                cursor:pointer;
+                            ">
+                            View Poster
+                        </button>
+                    ` : ""}
+                </div>
+            `
+        });
+
+        marker.addListener("click", () => info.open(map, marker));
+        bounds.extend(pos);
+    });
+    
+        map.setCenter({ lat: 39.5, lng: -98.35 });
+        map.setZoom(4);
+    
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+            const userPos = {
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude
             };
 
-            const marker = new google.maps.Marker({
-                position: pos,
+            new google.maps.Marker({
+                position: userPos,
                 map,
-                title: e.EventName,
-                animation: google.maps.Animation.DROP,
+                title: "You are here",
                 icon: {
-                    url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 8,
+                    fillColor: "#10b981",
+                    fillOpacity: 1,
+                    strokeColor: "#ffffff",
+                    strokeWeight: 2
                 }
             });
-
-            const info = new google.maps.InfoWindow({
-                content: `
-                    <div style="
-                        max-width:220px;
-                        font-family:Arial;
-                    ">
-                        ${e.ImageURL ? `
-                            <img src="${e.ImageURL}" 
-                                style="
-                                    width:100%;
-                                    height:120px;
-                                    object-fit:cover;
-                                    border-radius:8px;
-                                    margin-bottom:6px;
-                                ">
-                        ` : ""}
-
-                        <h4 style="
-                            margin:4px 0;
-                            font-size:14px;
-                            color:#1e293b;
-                        ">
-                            ${e.EventName}
-                        </h4>
-
-                        <p style="
-                            margin:0;
-                            font-size:12px;
-                            color:#475569;
-                        ">
-                            ${e.VenueName}
-                        </p>
-
-                        <p style="
-                            margin:0;
-                            font-size:11px;
-                            color:#64748b;
-                        ">
-                            ${e.Location}
-                        </p>
-                    </div>
-                `
-            });
-
-            marker.addListener("click", () => info.open(map, marker));
-            bounds.extend(pos);
         });
-
-        if (events.length) {
-            map.fitBounds(bounds);
-        } else {
-            map.setCenter({ lat: 39.5, lng: -98.35 });
-            map.setZoom(4);
-        }
-
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(pos => {
-                const userPos = {
-                    lat: pos.coords.latitude,
-                    lng: pos.coords.longitude
-                };
-
-                new google.maps.Marker({
-                    position: userPos,
-                    map,
-                    title: "You are here",
-                    icon: {
-                        path: google.maps.SymbolPath.CIRCLE,
-                        scale: 8,
-                        fillColor: "#10b981",
-                        fillOpacity: 1,
-                        strokeColor: "#ffffff",
-                        strokeWeight: 2
-                    }
-                });
-            });
-        }
     }
+}
 
-    window.initMap = initMap;
+window.initMap = initMap;
 </script>
+
 </body>
 </html>
