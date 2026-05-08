@@ -1,51 +1,100 @@
 async function loadEvents(apiUrl) {
+
     const res = await fetch(apiUrl);
-    if (!res.ok) throw new Error("Failed to load events");
+
+    if (!res.ok) {
+        throw new Error("Failed to load events");
+    }
+
     return await res.json();
 }
 
 function createMarker(map, event) {
+
     const lat = Number(event.Latitude);
     const lng = Number(event.Longitude);
 
-    if (isNaN(lat) || isNaN(lng)) return null;
+    if (isNaN(lat) || isNaN(lng)) {
+        return null;
+    }
 
     const marker = new google.maps.Marker({
         position: { lat, lng },
         map,
         title: event.EventName,
+
         animation: google.maps.Animation.DROP,
+
         icon: {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 8,
-            fillColor: "#3b82f6",
-            fillOpacity: 1,
-            strokeColor: "#ffffff",
-            strokeWeight: 2,
+            url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
         }
     });
 
     const infoWindow = new google.maps.InfoWindow({
         content: `
-            <div style="padding:10px; max-width:220px;">
-                <h3 style="margin:0; color:#3b82f6;">
+            <div style="
+                width:220px;
+                font-family:Arial;
+            ">
+
+                <h4 style="
+                    margin:4px 0;
+                    font-size:14px;
+                    color:#1e293b;
+                ">
                     ${event.EventName}
-                </h3>
-                <p style="margin:6px 0;">
+                </h4>
+
+                <p style="
+                    margin:0;
+                    font-size:12px;
+                    color:#475569;
+                ">
                     ${event.VenueName || ""}
                 </p>
-                <small>${event.Location || ""}</small>
-                <br>
-                <a href="/events/${event.EventID}"
-                   style="display:inline-block;
-                          margin-top:8px;
-                          padding:6px 10px;
-                          background:#3b82f6;
-                          color:white;
-                          border-radius:4px;
-                          text-decoration:none;">
+
+                <p style="
+                    margin:0 0 8px;
+                    font-size:11px;
+                    color:#64748b;
+                ">
+                    ${event.Location || ""}
+                </p>
+
+                ${
+                    event.ImageURL
+                    ? `
+                    <img
+                        src="${event.ImageURL}"
+                        style="
+                            width:100%;
+                            height:120px;
+                            object-fit:contain;
+                            background:#f8fafc;
+                            border-radius:8px;
+                            margin-top:8px;
+                        "
+                    >
+                    `
+                    : ""
+                }
+
+                <a
+                    href="/events/view/${event.VariantID}"
+                    style="
+                        display:inline-block;
+                        margin-top:10px;
+                        padding:6px 10px;
+                        background:#2563eb;
+                        color:white;
+                        border-radius:6px;
+                        text-decoration:none;
+                        font-size:12px;
+                    "
+                >
                     View Event
                 </a>
+
             </div>
         `
     });
@@ -58,7 +107,9 @@ function createMarker(map, event) {
 }
 
 function enableSearchBox(map, inputId) {
+
     const input = document.getElementById(inputId);
+
     if (!input) return;
 
     const searchBox = new google.maps.places.SearchBox(input);
@@ -70,13 +121,20 @@ function enableSearchBox(map, inputId) {
     let searchMarker;
 
     searchBox.addListener("places_changed", () => {
+
         const places = searchBox.getPlaces();
+
         if (!places.length) return;
 
         const place = places[0];
-        if (!place.geometry || !place.geometry.location) return;
 
-        if (searchMarker) searchMarker.setMap(null);
+        if (!place.geometry || !place.geometry.location) {
+            return;
+        }
+
+        if (searchMarker) {
+            searchMarker.setMap(null);
+        }
 
         searchMarker = new google.maps.Marker({
             map,
@@ -90,6 +148,7 @@ function enableSearchBox(map, inputId) {
 }
 
 export async function initMap(config = {}) {
+
     const {
         mapId = "map",
         api = "/api/events",
@@ -100,30 +159,57 @@ export async function initMap(config = {}) {
     } = config;
 
     const mapElement = document.getElementById(mapId);
+
     if (!mapElement) return;
 
     const map = new google.maps.Map(mapElement, {
+
         center,
         zoom,
+
         streetViewControl: false,
         mapTypeControl: false,
         fullscreenControl: false,
         zoomControl: true,
+
+        styles: [
+            {
+                elementType: "geometry",
+                stylers: [{ color: "#f8fafc" }]
+            },
+            {
+                elementType: "labels.text.fill",
+                stylers: [{ color: "#616161" }]
+            },
+            {
+                elementType: "labels.text.stroke",
+                stylers: [{ color: "#f5f5f5" }]
+            },
+            {
+                featureType: "road",
+                elementType: "geometry",
+                stylers: [{ color: "#ffffff" }]
+            },
+            {
+                featureType: "water",
+                elementType: "geometry",
+                stylers: [{ color: "#cbd5e1" }]
+            },
+            {
+                featureType: "poi",
+                stylers: [{ visibility: "off" }]
+            }
+        ]
     });
 
     const events = await loadEvents(api);
-    const bounds = new google.maps.LatLngBounds();
 
     events.forEach(event => {
-        const marker = createMarker(map, event);
-        if (marker) {
-            bounds.extend(marker.getPosition());
-        }
+        createMarker(map, event);
     });
 
-    if (events.length) {
-        map.fitBounds(bounds);
-    }
+    map.setCenter({ lat: 39.5, lng: -98.35 });
+    map.setZoom(4);
 
     if (enableSearch) {
         enableSearchBox(map, searchInputId);

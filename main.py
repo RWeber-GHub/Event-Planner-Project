@@ -58,7 +58,7 @@ def home(request: Request):
         FROM Events e
         JOIN EventVariants ev ON e.EventID = ev.EventID
         LEFT JOIN Venues v ON ev.VenueID = v.VenueID
-        WHERE ev.Approved = 1
+        
         GROUP BY ev.VariantID
         ORDER BY RANDOM()
         LIMIT 6
@@ -233,7 +233,7 @@ geolocator = Nominatim(user_agent="eventhub_app")
 @app.get("/logout")
 def logout(request: Request):
     request.session.clear()
-    return templates.TemplateResponse("Home.html", {"request": request})
+    return RedirectResponse(url="/", status_code=303)
 
 @app.get("/events")
 def browse_events(request: Request, category: int = None):

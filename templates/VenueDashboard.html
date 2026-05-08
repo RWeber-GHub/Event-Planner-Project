@@ -261,8 +261,9 @@ footer {
     <nav class="navbar">
         <div><a class="logo" href="/">EventHub</a></div>
         <ul class="nav-links">
-            <li><a href="#">Browse</a></li>
-            <li><a href="/login">Login</a></li>
+            <li><p>{{ request.session }}</p></li>
+            <li><a href="/events">Browse</a></li>
+            <li><a href="/logout">Logout</a></li>
         </ul>
     </nav>
 </header>
@@ -270,7 +271,7 @@ footer {
 <h1 style="text-align:center;margin-top:20px;">Venue Dashboard</h1>
 
 <section class="event-section">
-    <h2 id="venueTitle">Your Venue</h2>
+    <h2 id="venueTitle">No Venue Set!</h2>
     <button onclick="openVenueForm()">Set Venue</button>
 </section>
 
@@ -566,158 +567,28 @@ file?.addEventListener("change", function () {
 });
 </script>
 
+<script type="module">
+import { initMap } from "/static/js/map.js";
+
+window.addEventListener("load", () => {
+
+    initMap({
+        mapId: "map",
+        api: "/api/events",
+        enableSearch: true,
+        searchInputId: "searchBox"
+    });
+
+});
+</script>
+
+
 <script
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDRnWC5LJrp2i6SVmhpWHaIKpi8PC2xk6k&callback=initMap"
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDRnWC5LJrp2i6SVmhpWHaIKpi8PC2xk6k&libraries=places"
     async defer>
 </script>
 
-<script>
-async function loadEvents() {
-    const res = await fetch("/api/events");
 
-    if (!res.ok) {
-        console.error("API failed");
-        return [];
-    }
-
-    const data = await res.json();
-    console.log("Loaded events:", data);
-    return data;
-}
-
-let MAP_EVENTS = []; 
-
-async function initMap() {
-
-    if (!(window.google && google.maps)) {
-        console.error("Google Maps failed to load");
-        return;
-    }
-
-    const map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 39.5, lng: -98.35 },
-        zoom: 4,
-        styles: [
-            { elementType: "geometry", stylers: [{ color: "#f8fafc" }] },
-            { featureType: "road", elementType: "geometry", stylers: [{ color: "#ffffff" }] },
-            { featureType: "water", elementType: "geometry", stylers: [{ color: "#cbd5e1" }] }
-        ]
-    });
-
-    const events = await loadEvents();
-    MAP_EVENTS = events;
-    const bounds = new google.maps.LatLngBounds();
-
-    let hasMarkers = false;
-
-    events.forEach((e, i) => {
-
-        const lat = parseFloat(e.Latitude);
-        const lng = parseFloat(e.Longitude);
-
-        if (isNaN(lat) || isNaN(lng)) {
-            console.warn("Invalid coords:", e);
-            return;
-        }
-
-        hasMarkers = true;
-
-        const pos = { lat, lng };
-
-        const marker = new google.maps.Marker({
-            position: pos,
-            map,
-            title: e.EventName,
-            animation: google.maps.Animation.DROP,
-            icon: {
-                url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
-            }
-        });
-
-        const info = new google.maps.InfoWindow({
-            content: `
-                <div style="
-                    width:220px;
-                    font-family:Arial;
-                ">
-                    <h4 style="
-                        margin:4px 0;
-                        font-size:14px;
-                        color:#1e293b;
-                    ">
-                        ${e.EventName}
-                    </h4>
-
-                    <p style="
-                        margin:0;
-                        font-size:12px;
-                        color:#475569;
-                    ">
-                        ${e.VenueName}
-                    </p>
-
-                    <p style="
-                        margin:0 0 8px;
-                        font-size:11px;
-                        color:#64748b;
-                    ">
-                        ${e.Location}
-                    </p>
-
-                    ${e.ImageURL ? `
-                        <button 
-                            onclick="openPosterByIndex(${i})"                            
-                            style="
-                                width:100%;
-                                padding:6px;
-                                border:none;
-                                border-radius:6px;
-                                background:#2563eb;
-                                color:white;
-                                font-size:12px;
-                                cursor:pointer;
-                            ">
-                            View Poster
-                        </button>
-                    ` : ""}
-                </div>
-            `
-        });
-
-        marker.addListener("click", () => info.open(map, marker));
-        bounds.extend(pos);
-    });
-    
-        map.setCenter({ lat: 39.5, lng: -98.35 });
-        map.setZoom(4);
-    
-
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-            const userPos = {
-                lat: pos.coords.latitude,
-                lng: pos.coords.longitude
-            };
-
-            new google.maps.Marker({
-                position: userPos,
-                map,
-                title: "You are here",
-                icon: {
-                    path: google.maps.SymbolPath.CIRCLE,
-                    scale: 8,
-                    fillColor: "#10b981",
-                    fillOpacity: 1,
-                    strokeColor: "#ffffff",
-                    strokeWeight: 2
-                }
-            });
-        });
-    }
-}
-
-window.initMap = initMap;
-</script>
 
 </body>
 </html>

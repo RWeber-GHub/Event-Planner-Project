@@ -1,121 +1,375 @@
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Browse Events</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
 
-body{
-    font-family: Arial, Helvetica, sans-serif;
-    background-color:#121212;
-    color:#e4e4e4;
+*{
     margin:0;
     padding:0;
+    box-sizing:border-box;
+    font-family:"Orbitron", sans-serif;
 }
 
-/* Header */
+body{
+    background:
+        radial-gradient(circle at top, rgba(59,130,246,0.18), transparent 35%),
+        radial-gradient(circle at bottom right, rgba(139,92,246,0.18), transparent 35%),
+        linear-gradient(to bottom, #020617, #050816 40%, #0a0f2c 100%);
+    color:#e4e4e4;
+    min-height:100vh;
+    overflow-x:hidden;
+}
+
+/* subtle animated stars */
+
+body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    background-image:
+        radial-gradient(white 1px, transparent 1px),
+        radial-gradient(rgba(255,255,255,0.6) 1px, transparent 1px);
+    background-size:120px 120px, 200px 200px;
+    background-position:0 0, 50px 50px;
+    opacity:0.08;
+    animation:starsMove 60s linear infinite;
+    pointer-events:none;
+}
+
+@keyframes starsMove{
+    from{
+        transform:translateY(0);
+    }
+    to{
+        transform:translateY(-120px);
+    }
+}
+
+/* NAVBAR */
+
+.navbar{
+    position:sticky;
+    top:0;
+    z-index:1000;
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    padding:18px 40px;
+
+    background:rgba(3,7,18,0.75);
+    backdrop-filter:blur(14px);
+
+    border-bottom:1px solid rgba(255,255,255,0.08);
+}
+
+.logo-link{
+    text-decoration:none;
+}
+
+.logo{
+    font-size:1.7rem;
+    font-weight:700;
+    color:white;
+    letter-spacing:4px;
+
+    text-shadow:
+        0 0 10px rgba(59,130,246,0.8),
+        0 0 20px rgba(59,130,246,0.5);
+
+    transition:0.25s ease;
+}
+
+.logo:hover{
+    transform:scale(1.05);
+}
+
+.nav-links{
+    list-style:none;
+    display:flex;
+    gap:20px;
+    align-items:center;
+}
+
+.nav-links a,
+.nav-links p{
+    color:white;
+    text-decoration:none;
+    font-size:0.9rem;
+}
+
+.nav-links a:hover{
+    color:#60a5fa;
+}
+
+.register-btn{
+    background:linear-gradient(135deg,#2563eb,#7c3aed);
+    padding:10px 16px;
+    border-radius:8px;
+    box-shadow:0 0 15px rgba(59,130,246,0.4);
+}
+
+/* HEADER */
 
 .header{
     text-align:center;
-    padding:30px 20px;
+    padding:70px 20px 30px;
+    animation:fadeInUp 0.8s ease;
 }
 
 .header h1{
-    margin:0;
-    font-size:36px;
+    font-size:3rem;
+    letter-spacing:3px;
+
+    background:linear-gradient(to right,#ffffff,#60a5fa,#a78bfa);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+
+    margin-bottom:10px;
 }
 
-/* Filter section */
+.header p{
+    color:#94a3b8;
+    font-size:0.95rem;
+}
+
+/* FILTER BAR */
 
 .filter-bar{
+    width:90%;
+    margin:0 auto 40px;
+
     display:flex;
     justify-content:center;
-    gap:10px;
-    margin-bottom:30px;
+    gap:12px;
+
+    animation:fadeInUp 1s ease;
 }
 
 select{
-    padding:8px;
-    border-radius:6px;
-    border:none;
+    padding:12px 16px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,0.1);
+
+    background:rgba(15,23,42,0.85);
+    color:white;
+
+    outline:none;
+    min-width:220px;
+
+    backdrop-filter:blur(10px);
 }
 
 .filter-btn{
-    padding:8px 14px;
-    background:#1f6feb;
+    padding:12px 18px;
+
     border:none;
+    border-radius:10px;
+
+    background:linear-gradient(135deg,#2563eb,#7c3aed);
     color:white;
-    border-radius:6px;
+
     cursor:pointer;
+
+    transition:0.25s ease;
+
+    box-shadow:0 0 18px rgba(59,130,246,0.35);
 }
 
 .filter-btn:hover{
-    background:#2f81f7;
+    transform:translateY(-2px) scale(1.02);
+    box-shadow:0 0 25px rgba(96,165,250,0.55);
 }
 
-/* Events grid */
+/* EVENTS GRID */
 
 .events{
     width:90%;
     margin:auto;
+    padding-bottom:60px;
+
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-    gap:25px;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:28px;
 }
 
-/* Event card */
+/* EVENT CARD */
 
 .event-card{
-    background:#1c1c1c;
-    border-radius:10px;
+    position:relative;
+
+    background:rgba(15,23,42,0.75);
+    border:1px solid rgba(255,255,255,0.08);
+
+    border-radius:20px;
     overflow:hidden;
-    box-shadow:0 4px 10px rgba(0,0,0,0.6);
-    transition:transform .15s ease;
+
+    backdrop-filter:blur(16px);
+
+    box-shadow:
+        0 10px 30px rgba(0,0,0,0.45),
+        0 0 25px rgba(59,130,246,0.08);
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease;
+
+    opacity:0;
+    transform:translateY(40px);
+
+    animation:cardSlideIn 0.6s ease forwards;
+}
+
+/* stagger animation */
+
+.event-card:nth-child(1){ animation-delay:0.05s; }
+.event-card:nth-child(2){ animation-delay:0.10s; }
+.event-card:nth-child(3){ animation-delay:0.15s; }
+.event-card:nth-child(4){ animation-delay:0.20s; }
+.event-card:nth-child(5){ animation-delay:0.25s; }
+.event-card:nth-child(6){ animation-delay:0.30s; }
+.event-card:nth-child(7){ animation-delay:0.35s; }
+.event-card:nth-child(8){ animation-delay:0.40s; }
+
+.event-card::before{
+    content:"";
+    position:absolute;
+    inset:0;
+
+    background:linear-gradient(
+        135deg,
+        rgba(59,130,246,0.08),
+        transparent 40%,
+        rgba(168,85,247,0.08)
+    );
+
+    pointer-events:none;
 }
 
 .event-card:hover{
-    transform:translateY(-4px);
+    transform:translateY(-8px) scale(1.015);
+
+    border-color:rgba(96,165,250,0.35);
+
+    box-shadow:
+        0 15px 40px rgba(0,0,0,0.55),
+        0 0 35px rgba(59,130,246,0.18);
 }
 
-/* Event image */
+/* IMAGE */
 
 .event-image{
     width:100%;
-    height:160px;
+    height:190px;
     object-fit:cover;
+
+    border-bottom:1px solid rgba(255,255,255,0.08);
 }
 
-/* Card content */
+/* CONTENT */
 
 .event-content{
-    padding:15px;
+    padding:18px;
 }
 
 .event-content h3{
-    margin-top:0;
+    margin-bottom:14px;
+    font-size:1.2rem;
+    color:white;
 }
 
 .event-info{
-    font-size:14px;
-    margin-bottom:5px;
+    font-size:0.82rem;
+    margin-bottom:8px;
+    color:#cbd5e1;
+    line-height:1.5;
 }
 
-/* Details button */
+/* BUTTON */
 
 .details-btn{
     display:inline-block;
-    margin-top:10px;
-    padding:8px 12px;
-    background:#1f6feb;
+    margin-top:16px;
+    padding:10px 16px;
+
+    border-radius:10px;
+
+    background:linear-gradient(135deg,#2563eb,#7c3aed);
     color:white;
+
     text-decoration:none;
-    border-radius:6px;
-    font-size:14px;
+    font-size:0.85rem;
+
+    transition:0.25s ease;
+
+    box-shadow:0 0 16px rgba(59,130,246,0.25);
 }
 
 .details-btn:hover{
-    background:#2f81f7;
+    transform:translateY(-2px);
+    box-shadow:0 0 25px rgba(96,165,250,0.45);
+}
+
+/* ANIMATIONS */
+
+@keyframes cardSlideIn{
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+@keyframes fadeInUp{
+    from{
+        opacity:0;
+        transform:translateY(20px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+/* MOBILE */
+
+@media (max-width:768px){
+
+    .navbar{
+        flex-direction:column;
+        gap:15px;
+        padding:20px;
+    }
+
+    .nav-links{
+        flex-wrap:wrap;
+        justify-content:center;
+    }
+
+    .header h1{
+        font-size:2.1rem;
+    }
+
+    .filter-bar{
+        flex-direction:column;
+        align-items:center;
+    }
+
+    select{
+        width:100%;
+        max-width:320px;
+    }
 }
 
 </style>
@@ -124,25 +378,57 @@ select{
 
 <body>
 
+<header>
+    <nav class="navbar">
+
+        <a href="/" class="logo-link">
+            <div class="logo">E.V.E</div>
+        </a>
+
+        <ul class="nav-links">
+            <li><p>{{ request.session }}</p></li>
+
+            {% if request.session.get("role") == "seeker" %}
+                <li><a href="/user_dashboard">Dashboard</a></li>
+
+            {% elif request.session.get("role") == "host" %}
+                <li><a href="/venue_dashboard">Dashboard</a></li>
+            {% endif %}
+
+            {% if request.session.get("role") == None %}
+                <li><a href="/">Home</a></li>
+            {% else %}
+                <li><a href="/logout">Logout</a></li>
+            {% endif %}
+            
+            <li><a href="/register" class="register-btn">Register</a></li>
+        </ul>
+
+    </nav>
+</header>
+
 <div class="header">
-<h1>Browse Events</h1>
+    <h1>Browse Events</h1>
+    <p>Explore immersive experiences across the galaxy.</p>
 </div>
 
 <form method="get" action="/events" class="filter-bar">
 
-<select name="category">
-<option value="">All Categories</option>
+    <select name="category">
 
-{% for c in categories %}
+        <option value="">All Categories</option>
 
-<option value="{{c.CategoryID}}">
-{{c.Name}}
-</option>
-{% endfor %}
+        {% for c in categories %}
 
-</select>
+        <option value="{{c.CategoryID}}">
+            {{c.Name}}
+        </option>
 
-<button type="submit" class="filter-btn">Filter</button>
+        {% endfor %}
+
+    </select>
+
+    <button type="submit" class="filter-btn">Filter</button>
 
 </form>
 
@@ -152,25 +438,27 @@ select{
 
 <div class="event-card">
 
-<img src="{{event.ImageURL}}" class="event-image">
+    <img src="{{event.ImageURL}}" class="event-image">
 
-<div class="event-content">
+    <div class="event-content">
 
-<h3>{{event.Name}}</h3>
+        <h3>{{event.Name}}</h3>
 
-<div class="event-info"><b>Venue:</b> {{event.VenueName}}</div>
+        <div class="event-info"><b>Venue:</b> {{event.VenueName}}</div>
 
-<div class="event-info"><b>Location:</b> {{event.Location}}</div>
+        <div class="event-info"><b>Location:</b> {{event.Location}}</div>
 
-<div class="event-info"><b>Category:</b> {{event.Category}}</div>
+        <div class="event-info"><b>Category:</b> {{event.Category}}</div>
 
-<div class="event-info"><b>Date:</b> {{event.StartDate}}</div>
+        <div class="event-info"><b>Date:</b> {{event.StartDate}}</div>
 
-<div class="event-info"><b>Price:</b> ${{event.TicketPrice}}</div>
+        <div class="event-info"><b>Price:</b> ${{event.TicketPrice}}</div>
 
-<a href="/events/view/{{event.VariantID}}" class="details-btn">Details</a>
+        <a href="/events/view/{{event.VariantID}}" class="details-btn">
+            View Details
+        </a>
 
-</div>
+    </div>
 
 </div>
 

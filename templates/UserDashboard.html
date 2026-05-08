@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
+    
     <style>
     /* ---------- GLOBAL ---------- */
 * {
@@ -171,9 +172,9 @@ footer {
         <nav class="navbar">
             <div class="logo">EventHub</div>
             <ul class="nav-links">
-                <li><a href="#">Browse Events</a></li>
-                <li><a href="/login">Login</a></li>
-                <li><a href="/register" class="register-btn">Register</a></li>
+                <li><p>{{ request.session }}</p></li>
+                <li><a href="/events">Browse Events</a></li>
+                <li><a href="/logout">Logout</a></li>
             </ul>
         </nav>
     </header>
@@ -267,16 +268,16 @@ footer {
         const marker = new google.maps.Marker({
             position: pos,
             map: map,
-            title: event.EventName,
+            title: e.EventName,
             animation: google.maps.Animation.DROP
         });
 
         const info = new google.maps.InfoWindow({
             content: `
                 <div>
-                    <strong>${event.EventName}</strong><br>
-                    ${event.VenueName}<br>
-                    ${event.Location}
+                    <strong>${e.EventName}</strong><br>
+                    ${e.VenueName}<br>
+                    ${e.Location}
                 </div>
             `
         });
